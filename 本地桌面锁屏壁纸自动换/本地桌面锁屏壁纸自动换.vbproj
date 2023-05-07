@@ -6,7 +6,7 @@
     <RootNamespace>本地桌面锁屏壁纸自动换</RootNamespace>
     <UseWPF>true</UseWPF>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
-    <UseWindowsForms>True</UseWindowsForms>
+    <UseWindowsForms>False</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +23,10 @@
     <Import Include="System.Windows.Media.Imaging" />
     <Import Include="System.Windows.Navigation" />
     <Import Include="System.Windows.Shapes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\桌面锁屏取设\桌面锁屏取设.vbproj" />
   </ItemGroup>
 
   <ItemGroup>

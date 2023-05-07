@@ -11,27 +11,35 @@
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
 		<GroupBox Header="桌面" Grid.Column="0">
-			<StackPanel>
-				<StackPanel Orientation="Horizontal">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+				<StackPanel Orientation="Horizontal" Grid.Row="0">
 					<TextBlock Text="当前搜索路径：" VerticalAlignment="Center"/>
 					<Button x:Name="桌面_浏览" Content="浏览"/>
 					<Button x:Name="桌面_重置默认" Content="重置默认"/>
 				</StackPanel>
-				<TextBlock x:Name="桌面_当前搜索路径"/>
-				<ListView x:Name="桌面壁纸列表" ScrollViewer.VerticalScrollBarVisibility="Auto">
+				<TextBlock x:Name="桌面_当前搜索路径" Grid.Row="1"/>
+				<ListView x:Name="桌面壁纸列表" Grid.Row="2" HorizontalContentAlignment="Stretch" ScrollViewer.CanContentScroll="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ListView.ItemTemplate>
 						<DataTemplate>
-							<Image Source="{Binding}" Width="{Binding ActualWidth, ElementName=桌面壁纸列表, Mode=OneWay}"/>
+							<StackPanel x:Name="标尺">
+								<Image Source="{Binding}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
+							</StackPanel>
 						</DataTemplate>
 					</ListView.ItemTemplate>
 				</ListView>
-				<Image x:Name="桌面_当前图片"/>
-				<TextBlock x:Name="桌面图片错误">
+				<TextBlock x:Name="桌面图片错误" Grid.Row="3">
 					<TextBlock.Foreground>
 						<SolidColorBrush x:Name="桌面_错误颜色" Color="Red"/>
 					</TextBlock.Foreground>
 				</TextBlock>
-				<Grid>
+				<Grid Grid.Row="4">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>
@@ -60,7 +68,7 @@
 					<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1"/>
 					<Button x:Name="桌面_浏览图集" Grid.Column="1" Grid.Row="1"/>
 				</Grid>
-			</StackPanel>
+			</Grid>
 		</GroupBox>
 		<GroupBox Header="锁屏" Grid.Column="1">
 			<StackPanel>
