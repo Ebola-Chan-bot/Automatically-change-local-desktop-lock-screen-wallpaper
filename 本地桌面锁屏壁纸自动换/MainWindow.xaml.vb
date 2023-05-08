@@ -79,6 +79,7 @@ Class MainWindow
 			桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
 			Exit Sub
 		End Try
+		桌面.默认搜索路径 = ""
 		Settings.当前桌面目录 = 桌面.默认搜索路径
 		桌面_当前搜索路径.Text = Settings.当前桌面目录
 	End Sub

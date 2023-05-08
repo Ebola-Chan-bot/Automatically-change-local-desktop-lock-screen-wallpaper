@@ -21,13 +21,16 @@ Class Application
 				Select Case My.Application.CommandLineArgs.First
 					Case "自启动"
 						命名管道客户端流.WriteByte(启动类型.自启动)
-					Case "定时启动"
-						命名管道客户端流.WriteByte(启动类型.定时启动)
+					Case "换桌面"
+						命名管道客户端流.WriteByte(启动类型.换桌面)
+					Case "换锁屏"
+						命名管道客户端流.WriteByte(启动类型.换锁屏)
 				End Select
 			Else
 				命名管道客户端流.WriteByte(启动类型.用户启动)
 			End If
 			Shutdown()
+			Exit Sub
 		End Try
 		命名管道服务器流.BeginWaitForConnection(Sub()
 											Select Case 命名管道服务器流.ReadByte()
@@ -39,9 +42,12 @@ Class Application
 													End If
 												Case 启动类型.自启动
 													自启动()
-												Case 启动类型.定时启动
-													定时启动()
+												Case 启动类型.换桌面
+													换桌面()
+												Case 启动类型.换锁屏
+													换锁屏()
 											End Select
+											命名管道服务器流.Disconnect()
 										End Sub, Nothing)
 	End Sub
 
@@ -49,6 +55,23 @@ Class Application
 		当前窗口 = Nothing
 		If (Settings.桌面轮换周期 = 轮换周期.禁用 OrElse Settings.桌面轮换周期 > 轮换周期.小时12) AndAlso (Settings.锁屏轮换周期 = 轮换周期.禁用 OrElse Settings.锁屏轮换周期 > 轮换周期.小时12) Then
 			Shutdown()
+		End If
+	End Sub
+
+	Private Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
+		If e.Args.Any Then
+			Select Case e.Args.First
+				Case "自启动"
+					自启动()
+				Case "换桌面"
+					换桌面()
+				Case "换锁屏"
+					换锁屏()
+				Case Else
+					Shutdown(1)
+			End Select
+		Else
+			StartupUri = New Uri("MainWindow.xaml", UriKind.Relative)
 		End If
 	End Sub
 End Class

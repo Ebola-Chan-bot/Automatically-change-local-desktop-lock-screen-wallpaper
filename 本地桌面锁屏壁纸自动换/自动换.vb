@@ -1,4 +1,6 @@
-﻿Enum 轮换周期 As Byte
+﻿Imports 本地桌面锁屏壁纸自动换.My
+
+Enum 轮换周期 As Byte
 	禁用
 	分钟1
 	分钟2
@@ -22,7 +24,8 @@ End Enum
 Enum 启动类型 As Byte
 	用户启动
 	自启动
-	定时启动
+	换桌面
+	换锁屏
 End Enum
 
 Module 自动换
@@ -30,7 +33,11 @@ Module 自动换
 
 	End Sub
 
-	Sub 定时启动()
+	Sub 换桌面()
 
+	End Sub
+
+	Sub 换锁屏()
+		Dim 所有文件 As String() = IO.Directory.GetFiles(Settings.所有锁屏目录)
 	End Sub
 End Module

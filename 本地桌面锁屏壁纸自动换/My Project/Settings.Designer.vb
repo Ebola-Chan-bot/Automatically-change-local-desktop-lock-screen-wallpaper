@@ -125,6 +125,28 @@ Namespace My
                 Me("所有锁屏目录") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute()>  _
+        Public Property 上次桌面时间() As Date
+            Get
+                Return CType(Me("上次桌面时间"),Date)
+            End Get
+            Set
+                Me("上次桌面时间") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute()>  _
+        Public Property 上次锁屏时间() As Date
+            Get
+                Return CType(Me("上次锁屏时间"),Date)
+            End Get
+            Set
+                Me("上次锁屏时间") = value
+            End Set
+        End Property
     End Class
 End Namespace
 
