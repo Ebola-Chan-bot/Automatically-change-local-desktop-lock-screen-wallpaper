@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports 本地桌面锁屏壁纸自动换.My
 
 Class Application
 
@@ -41,21 +42,18 @@ Class Application
 
 	Private Sub 当前窗口_Closed(sender As Object, e As EventArgs)
 		当前窗口 = Nothing
-		Static 非驻留计划 As 轮换周期() = {轮换周期.禁用, 轮换周期.}
-		If 设置项.每隔时间单位 = 时间单位.关闭 OrElse 设置项.每隔时间单位 = 时间单位.天 Then
+		If (Settings.桌面轮换周期 = 轮换周期.禁用 OrElse Settings.桌面轮换周期 > 轮换周期.小时12) AndAlso (Settings.锁屏轮换周期 = 轮换周期.禁用 OrElse Settings.锁屏轮换周期 > 轮换周期.小时12) Then
 			Shutdown()
 		End If
 	End Sub
 
 	Private Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
-		If 设置项.保存后台日志 Then
-			日志流 = IO.File.AppendText(设置项.后台日志路径)
-		End If
 		If e.Args.Any AndAlso e.Args.First = "后台任务" Then
 			设置后台任务()
 		Else
 			StartupUri = New Uri("MainWindow.xaml", UriKind.Relative)
 		End If
-		写日志("启动成功")
 	End Sub
+
+	Overrides OnStartupNextInstance
 End Class

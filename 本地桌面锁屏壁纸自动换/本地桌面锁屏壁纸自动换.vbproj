@@ -7,6 +7,8 @@
     <UseWPF>true</UseWPF>
     <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWindowsForms>True</UseWindowsForms>
+    <MyType>WindowsForms</MyType>
+    <StartupObject>本地桌面锁屏壁纸自动换.My.MyApplication</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
