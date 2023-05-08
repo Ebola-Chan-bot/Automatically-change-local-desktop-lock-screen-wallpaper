@@ -1,6 +1,6 @@
 ﻿Imports 本地桌面锁屏壁纸自动换.My
 Imports System.IO
-Imports System.Windows.Forms
+Imports System.Windows
 Imports 桌面锁屏取设
 
 Class MainWindow
@@ -41,9 +41,10 @@ Class MainWindow
 		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
 		桌面_浏览图集.Content = Settings.所有桌面目录
 		锁屏_浏览图集.Content = Settings.所有锁屏目录
+		DirectCast(System.Windows.Application.Current, Application).当前窗口 = Me
 	End Sub
 
-	Private 目录浏览对话框 As New FolderBrowserDialog
+	Private 目录浏览对话框 As New Forms.FolderBrowserDialog
 
 	Private Sub 桌面_浏览_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览.Click
 		If 目录浏览对话框.ShowDialog = Forms.DialogResult.OK AndAlso Directory.Exists(目录浏览对话框.SelectedPath) Then

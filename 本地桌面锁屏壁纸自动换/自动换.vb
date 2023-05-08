@@ -18,3 +18,19 @@
 	周2
 	月1
 End Enum
+
+Enum 启动类型 As Byte
+	用户启动
+	自启动
+	定时启动
+End Enum
+
+Module 自动换
+	Sub 自启动()
+
+	End Sub
+
+	Sub 定时启动()
+
+	End Sub
+End Module
