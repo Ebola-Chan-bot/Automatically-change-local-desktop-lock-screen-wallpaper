@@ -47,6 +47,8 @@ Class MainWindow
 	Private 目录浏览对话框 As New Forms.FolderBrowserDialog
 
 	Private Sub 桌面_浏览_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览.Click
+		Dim a As IReadOnlyList(Of String)
+		Dim b As String = a.get
 		If 目录浏览对话框.ShowDialog = Forms.DialogResult.OK AndAlso Directory.Exists(目录浏览对话框.SelectedPath) Then
 			Try
 				桌面壁纸列表.ItemsSource = 各屏壁纸(目录浏览对话框.SelectedPath)
