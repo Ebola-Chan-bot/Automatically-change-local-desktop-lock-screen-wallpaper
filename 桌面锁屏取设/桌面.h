@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include<stdint.h>
-#include<string>
+#include<ShObjIdl.h>
 using namespace System;
-using namespace System::Collections::Generic;
 namespace 桌面锁屏取设 {
 	public enum 桌面壁纸位置:uint8_t
 	{
@@ -13,64 +12,59 @@ namespace 桌面锁屏取设 {
 		填充 = 4,
 		跨区 = 5
 	};
-	public value struct 监视设备
+	public value struct 幻灯片选项结构
 	{
-		String^ 路径名称();
-		//监视设备的左上角和右下角的虚拟XY坐标。左上角坐标为(0,0)的是主要监视设备。
-		Drawing::Rectangle 显示矩形();
+		property bool 扰乱图片顺序;
+		property UINT 图片切换周期毫秒数;
+	};
+	public value struct 桌面幻灯片显示状态
+	{
+		bool 已启用() { return 状态 & DSS_ENABLED; }
+		bool 已配置() { return 状态 & DSS_SLIDESHOW; }
+		bool 被远程会话禁用() { return 状态 & DSS_DISABLED_BY_REMOTE_SESSION; };
+	internal:
+		DESKTOP_SLIDESHOW_STATE 状态;
+	};
+	public ref class 监视器设备
+	{
+		const wchar_t* 监视器ID;
+	public:
+		//获取系统的监视器之一
+		监视器设备(uint8_t 监视器索引);
+		~监视器设备();
+		//与系统关联的监视器数。
+		static uint8_t 监视器设备计数();
+		//将墙纸切换到幻灯片放映中的下一个图像。
 		void 下一个桌面背景(bool 向后);
-		//静态壁纸图片路径
-		property String^ 壁纸
+		//显示矩形。
+		Drawing::Rectangle 矩形();
+		property String^ 壁纸路径
 		{
 			String^ get();
 			void set(String^);
 		}
-		//检索所有监视设备，以便对每个设备执行单独操作
-		static IReadOnlyList<监视设备>^ 所有监视设备();
-	internal:
-		uint8_t 索引;
 	};
-	public value struct 幻灯片选项结构
+	public ref struct 桌面壁纸
 	{
-		property bool 扰乱图片顺序;
-		property uint32_t 图片切换周期毫秒数;
-	};
-	public ref struct 桌面
-	{
-		//禁用一切桌面图片和幻灯片，只显示纯色背景
+		//禁用桌面背景时，将在其位置显示纯色。
 		static void 禁用();
-		//设置纯色背景颜色
+		//不显示图像或禁用桌面背景时在桌面上可见的颜色。当桌面壁纸未填满整个屏幕时，此颜色也用作边框。
 		static property Drawing::Color 背景颜色
 		{
 			Drawing::Color get();
 			void set(Drawing::Color);
 		}
-		//选择适合你的桌面图象？
-		static property 桌面壁纸位置 位置
-		{
-			桌面壁纸位置 get();
-			void set(桌面壁纸位置);
-		}
+		static 桌面壁纸位置 位置();
 		static property String^ 幻灯片目录
 		{
 			String^ get();
 			void set(String^);
 		}
+		static 桌面幻灯片显示状态 幻灯片状态();
 		static property 幻灯片选项结构 幻灯片选项
 		{
 			幻灯片选项结构 get();
 			void set(幻灯片选项结构);
 		}
-		static bool 幻灯片启用();
-		static bool 幻灯片已配置();
-		static bool 幻灯片被远程会话禁用();
-		//只有一个监视设备时可以使用此快速属性；否则请检索所有监视设备
-		static property String^ 壁纸
-		{
-			String^ get();
-			void set(String^);
-		}
-		//纯静态类，不允许构造对象
-		桌面() = delete;
 	};
 }
