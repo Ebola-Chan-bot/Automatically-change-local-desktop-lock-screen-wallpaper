@@ -17,18 +17,16 @@ Class Application
 		Catch ex As IOException
 			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换", PipeDirection.Out)
 			命名管道客户端流.Connect(1000)
-			If My.Application.CommandLineArgs.Any Then
-				Select Case My.Application.CommandLineArgs.First
-					Case "自启动"
-						命名管道客户端流.WriteByte(启动类型.自启动)
-					Case "换桌面"
-						命名管道客户端流.WriteByte(启动类型.换桌面)
-					Case "换锁屏"
-						命名管道客户端流.WriteByte(启动类型.换锁屏)
-				End Select
-			Else
-				命名管道客户端流.WriteByte(启动类型.用户启动)
-			End If
+			Select Case Command()
+				Case "自启动"
+					命名管道客户端流.WriteByte(启动类型.自启动)
+				Case "换桌面"
+					命名管道客户端流.WriteByte(启动类型.换桌面)
+				Case "换锁屏"
+					命名管道客户端流.WriteByte(启动类型.换锁屏)
+				Case Else
+					命名管道客户端流.WriteByte(启动类型.用户启动)
+			End Select
 			Shutdown()
 			Exit Sub
 		End Try

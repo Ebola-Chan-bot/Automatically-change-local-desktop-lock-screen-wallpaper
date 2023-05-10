@@ -1,4 +1,8 @@
-﻿Imports 本地桌面锁屏壁纸自动换.My
+﻿Imports System.IO
+Imports 本地桌面锁屏壁纸自动换.My
+Imports 桌面壁纸取设
+Imports System.TimeSpan
+Imports System.Threading
 
 Enum 轮换周期 As Byte
 	禁用
@@ -29,15 +33,40 @@ Enum 启动类型 As Byte
 End Enum
 
 Module 自动换
-	Sub 自启动()
+	Friend ReadOnly 轮换周期转时间跨度 As TimeSpan() = {Timeout.InfiniteTimeSpan, FromMinutes(1), FromMinutes(2), FromMinutes(5), FromMinutes(10), FromMinutes(15), FromMinutes(30), FromHours(1), FromHours(2), FromHours(3), FromHours(6), FromHours(12)}
 
-	End Sub
+	Function TimeSpanMin(A As TimeSpan, B As TimeSpan) As TimeSpan
+		Return If(A < B, A, B)
+	End Function
+
+	ReadOnly 随机生成器 As New Random
 
 	Sub 换桌面()
-
+		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
+		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
+		For a As Byte = 0 To 监视器个数
+			Dim 丢弃 As New 监视器设备(a) With {.壁纸路径 = 所有图片(随机生成器.Next(所有图片.Length))}
+		Next
+		Settings.上次桌面时间 = Now
 	End Sub
 
-	Sub 换锁屏()
-		Dim 所有文件 As String() = IO.Directory.GetFiles(Settings.所有锁屏目录)
+	Async Sub 换锁屏()
+		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
+		Call Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(所有图片(随机生成器.Next(所有图片.Length))))
+		Settings.上次锁屏时间 = Now
+	End Sub
+
+	Friend ReadOnly 桌面定时器 As New Timer(AddressOf 换桌面)
+	Friend ReadOnly 锁屏定时器 As New Timer(AddressOf 换锁屏)
+
+	Sub 自启动()
+		If Settings.桌面轮换周期 < 轮换周期.天1 Then
+			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.桌面轮换周期)
+			桌面定时器.Change(TimeSpanMin(时间跨度, Now - Settings.上次桌面时间), 时间跨度)
+		End If
+		If Settings.锁屏轮换周期 < 轮换周期.天1 Then
+			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.锁屏轮换周期)
+			锁屏定时器.Change(TimeSpanMin(时间跨度, Now - Settings.上次锁屏时间), 时间跨度)
+		End If
 	End Sub
 End Module

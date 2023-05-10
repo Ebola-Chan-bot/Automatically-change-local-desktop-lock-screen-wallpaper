@@ -5,10 +5,11 @@
     <TargetFramework>net7.0-windows10.0.19041.0</TargetFramework>
     <RootNamespace>本地桌面锁屏壁纸自动换</RootNamespace>
     <UseWPF>true</UseWPF>
-    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
-    <UseWindowsForms>True</UseWindowsForms>
-    <MyType>WindowsFormsWithCustomSubMain</MyType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Remove="Application.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="图标.jpg" />
@@ -27,11 +28,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Application.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="TaskScheduler" Version="2.10.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\桌面锁屏取设\桌面锁屏取设.vcxproj" />
+    <ProjectReference Include="..\桌面壁纸取设\桌面壁纸取设.vcxproj" />
   </ItemGroup>
 
   <ItemGroup>

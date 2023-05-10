@@ -1,10 +1,10 @@
 ﻿#include "pch.h"
-#include "桌面.h"
+#include "桌面壁纸取设.h"
 #include<winrt/base.h>
-#include<msclr/marshal_cppstd.h>
+#include<msclr/marshal.h>
 #pragma comment(lib,"shell32.lib")
 #pragma comment(lib,"ole32.lib")
-namespace 桌面锁屏取设
+namespace 桌面壁纸取设
 {
 	IDesktopWallpaper* const 接口 = []()
 	{
@@ -50,6 +50,10 @@ namespace 桌面锁屏取设
 	{
 		msclr::interop::marshal_context 封送上下文;
 		接口->SetWallpaper(监视器ID, 封送上下文.marshal_as<LPCWSTR>(新值));
+	}
+	String^ 监视器设备::路径名称::get()
+	{
+		return gcnew String(监视器ID);
 	}
 	void 桌面壁纸::禁用()
 	{

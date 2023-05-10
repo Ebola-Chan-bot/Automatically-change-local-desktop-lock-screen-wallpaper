@@ -23,9 +23,10 @@
     <EnableManagedPackageReferenceSupport>true</EnableManagedPackageReferenceSupport>
     <ProjectGuid>{2D291CB9-9DF0-4871-BA48-A769711AE6BC}</ProjectGuid>
     <Keyword>NetCoreCProj</Keyword>
-    <RootNamespace>桌面锁屏取设</RootNamespace>
+    <RootNamespace>桌面壁纸取设</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <TargetFramework>net7.0</TargetFramework>
+    <ProjectName>桌面壁纸取设</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -85,7 +86,6 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
-      <CompileAsWinRT>true</CompileAsWinRT>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -131,8 +131,7 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="桌面.h" />
-    <ClInclude Include="锁屏.h" />
+    <ClInclude Include="桌面壁纸取设.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
@@ -142,8 +141,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="桌面.cpp" />
-    <ClCompile Include="锁屏.cpp" />
+    <ClCompile Include="桌面壁纸取设.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />

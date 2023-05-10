@@ -56,18 +56,6 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
-        Public Property 当前桌面目录() As String
-            Get
-                Return CType(Me("当前桌面目录"),String)
-            End Get
-            Set
-                Me("当前桌面目录") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
          Global.System.Configuration.DefaultSettingValueAttribute("0")>  _
         Public Property 桌面轮换周期() As Byte
             Get
@@ -87,18 +75,6 @@ Namespace My
             End Get
             Set
                 Me("所有桌面目录") = value
-            End Set
-        End Property
-        
-        <Global.System.Configuration.UserScopedSettingAttribute(),  _
-         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
-        Public Property 当前锁屏目录() As String
-            Get
-                Return CType(Me("当前锁屏目录"),String)
-            End Get
-            Set
-                Me("当前锁屏目录") = value
             End Set
         End Property
         

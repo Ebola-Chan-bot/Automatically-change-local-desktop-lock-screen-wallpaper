@@ -13,44 +13,37 @@
 		<GroupBox Header="桌面" Grid.Column="0">
 			<Grid>
 				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="Auto"/>
 					<RowDefinition/>
 					<RowDefinition Height="Auto"/>
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
-				<StackPanel Orientation="Horizontal" Grid.Row="0">
-					<TextBlock Text="当前搜索路径：" VerticalAlignment="Center"/>
-					<Button x:Name="桌面_浏览" Content="浏览"/>
-					<Button x:Name="桌面_重置默认" Content="重置默认"/>
-				</StackPanel>
-				<TextBlock x:Name="桌面_当前搜索路径" Grid.Row="1"/>
-				<ListView x:Name="桌面壁纸列表" Grid.Row="2" HorizontalContentAlignment="Stretch" ScrollViewer.CanContentScroll="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+				<ListView x:Name="桌面壁纸列表" Grid.Row="0" HorizontalContentAlignment="Stretch" ScrollViewer.CanContentScroll="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 					<ListView.ItemTemplate>
 						<DataTemplate>
 							<StackPanel x:Name="标尺">
-								<TextBlock Text="{Binding Path=设备名称, Mode=OneWay}"/>
+								<TextBlock Text="{Binding Path=路径名称, Mode=OneWay}"/>
 								<Image Source="{Binding Path=壁纸路径, Mode=OneWay}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
 							</StackPanel>
 						</DataTemplate>
 					</ListView.ItemTemplate>
 				</ListView>
-				<TextBlock x:Name="桌面图片错误" Grid.Row="3">
+				<TextBlock x:Name="桌面图片错误" Grid.Row="1">
 					<TextBlock.Foreground>
 						<SolidColorBrush x:Name="桌面_错误颜色" Color="Red"/>
 					</TextBlock.Foreground>
 				</TextBlock>
-				<Grid Grid.Row="4">
+				<Grid Grid.Row="2">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>
+						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
 					<TextBlock Text="自动更换周期：" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"/>
-					<ComboBox x:Name="桌面_更换周期" SelectedIndex="0" Grid.Column="1" Grid.Row="0">
+					<ComboBox x:Name="桌面_更换周期" Grid.Column="1" Grid.Row="0">
 						<ComboBoxItem Content="禁用"/>
 						<ComboBoxItem Content="1分钟"/>
 						<ComboBoxItem Content="2分钟"/>
@@ -70,19 +63,15 @@
 						<ComboBoxItem Content="2周"/>
 						<ComboBoxItem Content="1个月"/>
 					</ComboBox>
-					<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1"/>
-					<Button x:Name="桌面_浏览图集" Grid.Column="1" Grid.Row="1"/>
+					<Button x:Name="桌面_立即更换" Grid.Column="2" Grid.Row="0" Content="立即更换"/>
+					<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center"/>
+					<TextBlock x:Name="桌面_图集目录" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"/>
+					<Button x:Name="桌面_浏览图集" Content="浏览" Grid.Column="2" Grid.Row="1"/>
 				</Grid>
 			</Grid>
 		</GroupBox>
 		<GroupBox Header="锁屏" Grid.Column="1">
 			<StackPanel>
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="当前搜索路径：" VerticalAlignment="Center"/>
-					<Button x:Name="锁屏_浏览" Content="浏览"/>
-					<Button x:Name="锁屏_重置默认" Content="重置默认"/>
-				</StackPanel>
-				<TextBlock x:Name="锁屏_当前搜索路径"/>
 				<Image x:Name="锁屏_当前图片"/>
 				<TextBlock x:Name="锁屏图片错误">
 					<TextBlock.Foreground>
@@ -93,13 +82,14 @@
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>
+						<ColumnDefinition Width="Auto"/>
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto"/>
 						<RowDefinition Height="Auto"/>
 					</Grid.RowDefinitions>
 					<TextBlock Text="自动更换周期：" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"/>
-					<ComboBox x:Name="锁屏_更换周期" SelectedIndex="0" Grid.Column="1" Grid.Row="0">
+					<ComboBox x:Name="锁屏_更换周期" Grid.Column="1" Grid.Row="0">
 						<ComboBoxItem Content="禁用"/>
 						<ComboBoxItem Content="1分钟"/>
 						<ComboBoxItem Content="2分钟"/>
@@ -119,8 +109,10 @@
 						<ComboBoxItem Content="2周"/>
 						<ComboBoxItem Content="1个月"/>
 					</ComboBox>
-					<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1"/>
-					<Button x:Name="锁屏_浏览图集" Grid.Column="1" Grid.Row="1"/>
+					<Button x:Name="锁屏_立即更换" Grid.Column="2" Grid.Row="0" Content="立即更换"/>
+					<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center"/>
+					<TextBlock x:Name="锁屏_图集目录" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center"/>
+					<Button x:Name="锁屏_浏览图集" Content="浏览" Grid.Column="2" Grid.Row="1"/>
 				</Grid>
 			</StackPanel>
 		</GroupBox>

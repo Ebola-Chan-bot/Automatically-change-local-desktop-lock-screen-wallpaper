@@ -2,7 +2,7 @@
 #include<stdint.h>
 #include<ShObjIdl.h>
 using namespace System;
-namespace 桌面锁屏取设 {
+namespace 桌面壁纸取设 {
 	public enum 桌面壁纸位置:uint8_t
 	{
 		居中 = 0,
@@ -42,6 +42,10 @@ namespace 桌面锁屏取设 {
 		{
 			String^ get();
 			void set(String^);
+		}
+		property String^ 路径名称
+		{
+			String^ get();
 		}
 	};
 	public ref struct 桌面壁纸
