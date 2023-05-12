@@ -1,10 +1,11 @@
 ﻿Imports 本地桌面锁屏壁纸自动换.My
 Imports 桌面壁纸取设
-Imports Windows.System.UserProfile
 Imports System.Threading
 Imports Windows.ApplicationModel
 Imports Microsoft.Win32.TaskScheduler
 Imports Windows.Storage
+Imports Windows.System.UserProfile
+Imports Microsoft.Win32
 
 Class MainWindow
 
@@ -26,18 +27,17 @@ Class MainWindow
 	End Sub
 
 	Private Sub 锁屏_当前图片_MouseLeftButtonUp() Handles 锁屏_当前图片.MouseLeftButtonUp
-		Try
-			锁屏_当前图片.Source = New BitmapImage(LockScreen.OriginalImageFile)
-		Catch ex As Exception
-			锁屏图片错误.Text = $"{ex.GetType} {ex.Message}"
-		End Try
+		Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
+		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
+		Static 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen"))
+		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
 	End Sub
 
-	Private 目录浏览对话框 As Pickers.FolderPicker = (Function()
-												   Dim 返回值 As New Pickers.FolderPicker
-												   返回值.FileTypeFilter.Add("*")
-												   Return 返回值
-											   End Function)()
+	ReadOnly 目录浏览对话框 As Pickers.FolderPicker = (Function()
+													Dim 返回值 As New Pickers.FolderPicker
+													返回值.FileTypeFilter.Add("*")
+													Return 返回值
+												End Function)()
 
 	Sub New()
 
@@ -113,6 +113,7 @@ Class MainWindow
 			End If
 			计划任务.Enabled = True
 		End If
+		消息($"桌面周期设置 {桌面_更换周期.SelectedValue}")
 	End Sub
 
 	Private Sub 锁屏_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
@@ -143,5 +144,6 @@ Class MainWindow
 			End If
 			计划任务.Enabled = True
 		End If
+		消息($"锁屏周期设置 {锁屏_更换周期.SelectedValue}")
 	End Sub
 End Class

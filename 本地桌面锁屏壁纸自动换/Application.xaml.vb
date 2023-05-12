@@ -2,6 +2,9 @@
 Imports System.IO.Pipes
 Imports System.Windows.Threading
 Imports 本地桌面锁屏壁纸自动换.My
+Imports Windows.Storage
+Imports Windows.Storage.Streams
+Imports Windows.Foundation
 
 Class Application
 
@@ -47,29 +50,22 @@ Class Application
 											End Select
 											命名管道服务器流.Disconnect()
 										End Sub, Nothing)
+		Select Case Command()
+			Case "自启动"
+				自启动()
+			Case "换桌面"
+				换桌面()
+			Case "换锁屏"
+				换锁屏()
+			Case Else
+				StartupUri = New Uri("MainWindow.xaml", UriKind.Relative)
+		End Select
 	End Sub
 
 	Private Sub 当前窗口_Closed(sender As Object, e As EventArgs) Handles 当前窗口.Closed
 		当前窗口 = Nothing
 		If (Settings.桌面轮换周期 = 轮换周期.禁用 OrElse Settings.桌面轮换周期 > 轮换周期.小时12) AndAlso (Settings.锁屏轮换周期 = 轮换周期.禁用 OrElse Settings.锁屏轮换周期 > 轮换周期.小时12) Then
 			Shutdown()
-		End If
-	End Sub
-
-	Private Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
-		If e.Args.Any Then
-			Select Case e.Args.First
-				Case "自启动"
-					自启动()
-				Case "换桌面"
-					换桌面()
-				Case "换锁屏"
-					换锁屏()
-				Case Else
-					Shutdown(1)
-			End Select
-		Else
-			StartupUri = New Uri("MainWindow.xaml", UriKind.Relative)
 		End If
 	End Sub
 End Class

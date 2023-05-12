@@ -45,14 +45,18 @@ Module 自动换
 		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
 		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
 		For a As Byte = 0 To 监视器个数
-			Dim 丢弃 As New 监视器设备(a) With {.壁纸路径 = 所有图片(随机生成器.Next(所有图片.Length))}
+			Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
+			Dim 监视器 As New 监视器设备(a) With {.壁纸路径 = 壁纸路径}
+			消息($"{监视器.路径名称} 设置桌面 {壁纸路径}")
 		Next
 		Settings.上次桌面时间 = Now
 	End Sub
 
 	Async Sub 换锁屏()
 		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
-		Call Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(所有图片(随机生成器.Next(所有图片.Length))))
+		Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
+		Call Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(壁纸路径))
+		消息($"设置锁屏 {壁纸路径}")
 		Settings.上次锁屏时间 = Now
 	End Sub
 

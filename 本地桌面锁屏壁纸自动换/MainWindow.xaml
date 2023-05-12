@@ -10,7 +10,11 @@
 			<ColumnDefinition/>
 			<ColumnDefinition/>
 		</Grid.ColumnDefinitions>
-		<GroupBox Header="桌面" Grid.Column="0">
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<GroupBox Header="桌面" Grid.Column="0" Grid.Row="0">
 			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition/>
@@ -70,7 +74,7 @@
 				</Grid>
 			</Grid>
 		</GroupBox>
-		<GroupBox Header="锁屏" Grid.Column="1">
+		<GroupBox Header="锁屏" Grid.Column="1" Grid.Row="0">
 			<StackPanel>
 				<Image x:Name="锁屏_当前图片"/>
 				<TextBlock x:Name="锁屏图片错误">
@@ -116,5 +120,7 @@
 				</Grid>
 			</StackPanel>
 		</GroupBox>
+		<Button x:Name="日志" Grid.Column="0" Grid.Row="1" Content="日志"/>
+		<Button x:Name="反馈" Grid.Column="1" Grid.Row="1" Content="反馈"/>
 	</Grid>
 </Window>
