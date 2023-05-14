@@ -4,11 +4,10 @@ Imports System.Threading
 Imports Windows.ApplicationModel
 Imports Microsoft.Win32.TaskScheduler
 Imports Windows.Storage
-Imports Windows.System.UserProfile
 Imports Microsoft.Win32
+Imports System.ComponentModel
 
 Class MainWindow
-
 	Private Sub 桌面壁纸列表_MouseLeftButtonUp() Handles 桌面壁纸列表.MouseLeftButtonUp
 		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
 		Dim 有效监视器 As New List(Of 监视器设备)
@@ -33,11 +32,7 @@ Class MainWindow
 		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
 	End Sub
 
-	ReadOnly 目录浏览对话框 As Pickers.FolderPicker = (Function()
-													Dim 返回值 As New Pickers.FolderPicker
-													返回值.FileTypeFilter.Add("*")
-													Return 返回值
-												End Function)()
+	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
 
 	Sub New()
 
@@ -73,17 +68,25 @@ Class MainWindow
 	End Sub
 
 	Private Sub 桌面_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_立即更换.Click
-		换桌面()
+		Try
+			换桌面()
+		Catch ex As Exception
+			桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
+		End Try
 	End Sub
 
-	Private Sub 锁屏_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_立即更换.Click
-		换锁屏()
+	Private Async Sub 锁屏_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_立即更换.Click
+		Try
+			Await 换锁屏()
+		Catch ex As Exception
+			锁屏图片错误.Text = $"{ex.GetType} {ex.Message}"
+		End Try
 	End Sub
 
-	ReadOnly 开机启动 As StartupTask = StartupTask.GetAsync("自启动任务").GetResults
-	ReadOnly 任务服务 As TaskService = TaskService.Instance
-	ReadOnly 轮换周期转触发器 As Trigger() = {New DailyTrigger(1), New DailyTrigger(2), New DailyTrigger(4), New WeeklyTrigger(1), New WeeklyTrigger(2), New MonthlyTrigger(1)}
-	ReadOnly 启动路径 As String = Process.GetCurrentProcess.MainModule.FileName
+	Shared ReadOnly 开机启动 As StartupTask = StartupTask.GetAsync("自启动任务").GetResults
+	Shared ReadOnly 任务服务 As TaskService = TaskService.Instance
+	Shared ReadOnly 轮换周期转触发器 As Trigger() = {New DailyTrigger(1), New DailyTrigger(2), New DailyTrigger(4), New WeeklyTrigger(1), New WeeklyTrigger(2), New MonthlyTrigger(1)}
+	Shared ReadOnly 启动路径 As String = Process.GetCurrentProcess.MainModule.FileName
 
 	Private Sub 桌面_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
 		Static 计划任务 As Task
@@ -145,5 +148,22 @@ Class MainWindow
 			计划任务.Enabled = True
 		End If
 		消息($"锁屏周期设置 {锁屏_更换周期.SelectedValue}")
+	End Sub
+
+	Private Async Sub 日志_Click(sender As Object, e As RoutedEventArgs) Handles 日志.Click
+		Process.Start("notepad.exe", Await 日志路径)
+	End Sub
+
+	Private Sub 反馈_Click(sender As Object, e As RoutedEventArgs) Handles 反馈.Click
+		Process.Start(New ProcessStartInfo("mailto:Leenrung@outlook.com?subject=本地桌面锁屏壁纸自动换 应用反馈&body=请将日志附在邮件中") With {.UseShellExecute = True})
+	End Sub
+
+	Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
+		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
+		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
+	End Sub
+
+	Private Sub MainWindow_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
+		Settings.Save()
 	End Sub
 End Class

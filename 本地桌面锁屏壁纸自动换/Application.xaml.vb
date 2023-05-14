@@ -59,6 +59,7 @@ Class Application
 				换锁屏()
 			Case Else
 				StartupUri = New Uri("MainWindow.xaml", UriKind.Relative)
+				自启动()
 		End Select
 	End Sub
 

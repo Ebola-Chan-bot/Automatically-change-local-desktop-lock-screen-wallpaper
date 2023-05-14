@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include<stdint.h>
 #include<ShObjIdl.h>
-using namespace System;
 namespace 桌面壁纸取设 {
 	public enum 桌面壁纸位置:uint8_t
 	{
@@ -37,15 +36,15 @@ namespace 桌面壁纸取设 {
 		//将墙纸切换到幻灯片放映中的下一个图像。
 		void 下一个桌面背景(bool 向后);
 		//显示矩形。
-		Drawing::Rectangle 矩形();
-		property String^ 壁纸路径
+		System::Drawing::Rectangle 矩形();
+		property System::String^ 壁纸路径
 		{
-			String^ get();
-			void set(String^);
+			System::String^ get();
+			void set(System::String^);
 		}
-		property String^ 路径名称
+		property System::String^ 路径名称
 		{
-			String^ get();
+			System::String^ get();
 		}
 	};
 	public ref struct 桌面壁纸
@@ -53,16 +52,16 @@ namespace 桌面壁纸取设 {
 		//禁用桌面背景时，将在其位置显示纯色。
 		static void 禁用();
 		//不显示图像或禁用桌面背景时在桌面上可见的颜色。当桌面壁纸未填满整个屏幕时，此颜色也用作边框。
-		static property Drawing::Color 背景颜色
+		static property System::Drawing::Color 背景颜色
 		{
-			Drawing::Color get();
-			void set(Drawing::Color);
+			System::Drawing::Color get();
+			void set(System::Drawing::Color);
 		}
 		static 桌面壁纸位置 位置();
-		static property String^ 幻灯片目录
+		static property System::String^ 幻灯片目录
 		{
-			String^ get();
-			void set(String^);
+			System::String^ get();
+			void set(System::String^);
 		}
 		static 桌面幻灯片显示状态 幻灯片状态();
 		static property 幻灯片选项结构 幻灯片选项

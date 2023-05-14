@@ -42,7 +42,12 @@ Module 自动换
 	ReadOnly 随机生成器 As New Random
 
 	Sub 换桌面()
-		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
+		Dim 所有图片 As String()
+		Try
+			所有图片 = Directory.GetFiles(Settings.所有桌面目录)
+		Catch ex As ArgumentException
+			Throw New ArgumentException("桌面图集目录无效", ex.ParamName, ex.InnerException)
+		End Try
 		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
 		For a As Byte = 0 To 监视器个数
 			Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
@@ -51,17 +56,34 @@ Module 自动换
 		Next
 		Settings.上次桌面时间 = Now
 	End Sub
-
-	Async Sub 换锁屏()
-		Dim 所有图片 As String() = Directory.GetFiles(Settings.所有桌面目录)
+	'必须返回Task才能捕获异常
+	Async Function 换锁屏() As Task
+		Dim 所有图片 As String()
+		Try
+			所有图片 = Directory.GetFiles(Settings.所有锁屏目录)
+		Catch ex As ArgumentException
+			Throw New ArgumentException("锁屏图集目录无效", ex.ParamName, ex.InnerException)
+		End Try
 		Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
 		Call Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(壁纸路径))
 		消息($"设置锁屏 {壁纸路径}")
 		Settings.上次锁屏时间 = Now
-	End Sub
+	End Function
 
-	Friend ReadOnly 桌面定时器 As New Timer(AddressOf 换桌面)
-	Friend ReadOnly 锁屏定时器 As New Timer(AddressOf 换锁屏)
+	Friend ReadOnly 桌面定时器 As New Timer(Sub() System.Windows.Application.Current.Dispatcher.Invoke(Sub()
+																									  Try
+																										  换桌面()
+																									  Catch ex As Exception
+																										  报错(ex)
+																									  End Try
+																								  End Sub))
+	Friend ReadOnly 锁屏定时器 As New Timer(Sub() System.Windows.Application.Current.Dispatcher.Invoke(Async Sub()
+																									  Try
+																										  Await 换锁屏()
+																									  Catch ex As Exception
+																										  报错(ex)
+																									  End Try
+																								  End Sub))
 
 	Sub 自启动()
 		If Settings.桌面轮换周期 < 轮换周期.天1 Then
