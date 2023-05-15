@@ -104,7 +104,7 @@ Class MainWindow
 				计划任务.Enabled = False
 			End If
 			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.桌面轮换周期)
-			桌面定时器.Change(TimeSpanMin(时间跨度, Now - Settings.上次桌面时间), 时间跨度)
+			桌面定时器.Change(剩余时间(Settings.上次桌面时间, 时间跨度), 时间跨度)
 		Else
 			桌面定时器.Change(Timeout.Infinite, Timeout.Infinite)
 			If Settings.锁屏轮换周期 > 轮换周期.小时12 OrElse Settings.锁屏轮换周期 = 轮换周期.禁用 Then
@@ -135,7 +135,7 @@ Class MainWindow
 				计划任务.Enabled = False
 			End If
 			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.锁屏轮换周期)
-			锁屏定时器.Change(TimeSpanMin(时间跨度, Now - Settings.上次锁屏时间), 时间跨度)
+			锁屏定时器.Change(剩余时间(Settings.上次锁屏时间, 时间跨度), 时间跨度)
 		Else
 			锁屏定时器.Change(Timeout.Infinite, Timeout.Infinite)
 			If Settings.桌面轮换周期 > 轮换周期.小时12 OrElse Settings.桌面轮换周期 = 轮换周期.禁用 Then

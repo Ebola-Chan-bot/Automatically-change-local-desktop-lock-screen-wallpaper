@@ -35,10 +35,6 @@ End Enum
 Module 自动换
 	Friend ReadOnly 轮换周期转时间跨度 As TimeSpan() = {Timeout.InfiniteTimeSpan, FromMinutes(1), FromMinutes(2), FromMinutes(5), FromMinutes(10), FromMinutes(15), FromMinutes(30), FromHours(1), FromHours(2), FromHours(3), FromHours(6), FromHours(12)}
 
-	Function TimeSpanMin(A As TimeSpan, B As TimeSpan) As TimeSpan
-		Return If(A < B, A, B)
-	End Function
-
 	ReadOnly 随机生成器 As New Random
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
 	Friend Event 自动换_桌面()
@@ -103,14 +99,19 @@ Module 自动换
 	Friend ReadOnly 桌面定时器 As New Timer(AddressOf 自动换桌面)
 	Friend ReadOnly 锁屏定时器 As New Timer(AddressOf 自动换锁屏)
 
+	Function 剩余时间(上次时间 As Date, 时间跨度 As TimeSpan) As TimeSpan
+		Dim 返回值 As TimeSpan = 上次时间 + 时间跨度 - Now
+		Return If(返回值 > Zero, 返回值, Zero)
+	End Function
+
 	Sub 自启动()
 		If Settings.桌面轮换周期 < 轮换周期.天1 Then
 			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.桌面轮换周期)
-			桌面定时器.Change(TimeSpanMin(Zero, Settings.上次桌面时间 + 时间跨度 - Now), 时间跨度)
+			桌面定时器.Change(剩余时间(Settings.上次桌面时间, 时间跨度), 时间跨度)
 		End If
 		If Settings.锁屏轮换周期 < 轮换周期.天1 Then
 			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.锁屏轮换周期)
-			锁屏定时器.Change(TimeSpanMin(Zero, Settings.上次桌面时间 + 时间跨度 - Now), 时间跨度)
+			锁屏定时器.Change(剩余时间(Settings.上次锁屏时间, 时间跨度), 时间跨度)
 		End If
 	End Sub
 End Module
