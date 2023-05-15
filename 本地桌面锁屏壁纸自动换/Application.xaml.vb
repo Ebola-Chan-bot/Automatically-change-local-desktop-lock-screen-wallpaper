@@ -86,9 +86,11 @@ Class Application
 			Case "自启动"
 				自启动()
 			Case "换桌面"
-				自动换桌面()
+				Await 自动换桌面()
+				Shutdown()
 			Case "换锁屏"
-				自动换锁屏()
+				Await 自动换锁屏()
+				Shutdown()
 			Case Else
 				自启动()
 				Call (New MainWindow).Show()

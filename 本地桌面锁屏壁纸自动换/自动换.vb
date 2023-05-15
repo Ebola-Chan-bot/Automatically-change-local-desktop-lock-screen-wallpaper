@@ -3,6 +3,7 @@ Imports 本地桌面锁屏壁纸自动换.My
 Imports 桌面壁纸取设
 Imports System.TimeSpan
 Imports System.Threading
+Imports Microsoft.Win32
 
 Enum 轮换周期 As Byte
 	禁用
@@ -76,32 +77,36 @@ Module 自动换
 		RaiseEvent 自动换_锁屏()
 	End Function
 
-	Sub 自动换桌面()
-		System.Windows.Application.Current.Dispatcher.Invoke(Sub()
-																 Try
-																	 换桌面()
-																 Catch ex As Exception
-																	 Current.报错(ex)
-																 End Try
-															 End Sub)
-	End Sub
+	Async Function 自动换桌面() As Task
+		Await System.Windows.Application.Current.Dispatcher.Invoke(Async Function() As Task
+																	   Try
+																		   换桌面()
+																	   Catch ex As Exception
+																		   Current.报错(ex)
+																	   End Try
+																   End Function)
+	End Function
 
-	Sub 自动换锁屏()
-		System.Windows.Application.Current.Dispatcher.Invoke(Async Sub()
-																 Try
-																	 Await 换锁屏()
-																 Catch ex As Exception
-																	 Current.报错(ex)
-																 End Try
-															 End Sub)
-	End Sub
+	Async Function 自动换锁屏() As Task
+		Await System.Windows.Application.Current.Dispatcher.Invoke(Async Function() As Task
+																	   Try
+																		   Await 换锁屏()
+																	   Catch ex As Exception
+																		   Current.报错(ex)
+																	   End Try
+																   End Function)
+	End Function
 
 	Friend ReadOnly 桌面定时器 As New Timer(AddressOf 自动换桌面)
 	Friend ReadOnly 锁屏定时器 As New Timer(AddressOf 自动换锁屏)
 
 	Function 剩余时间(上次时间 As Date, 时间跨度 As TimeSpan) As TimeSpan
-		Dim 返回值 As TimeSpan = 上次时间 + 时间跨度 - Now
-		Return If(返回值 > Zero, 返回值, Zero)
+		If 时间跨度 = Timeout.InfiniteTimeSpan Then
+			Return Timeout.InfiniteTimeSpan
+		Else
+			Dim 返回值 As TimeSpan = 上次时间 + 时间跨度 - Now
+			Return If(返回值 > Zero, 返回值, Zero)
+		End If
 	End Function
 
 	Sub 自启动()
@@ -112,6 +117,49 @@ Module 自动换
 		If Settings.锁屏轮换周期 < 轮换周期.天1 Then
 			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.锁屏轮换周期)
 			锁屏定时器.Change(剩余时间(Settings.上次锁屏时间, 时间跨度), 时间跨度)
+		End If
+	End Sub
+
+	Sub 更换周期(桌面锁屏 As String, 桌面锁屏轮换周期 As (Byte, Byte), 定时器 As Timer, 上次桌面锁屏时间 As Date)
+		Static 任务服务 As TaskScheduler.TaskService = TaskScheduler.TaskService.Instance
+		Static 轮换周期转触发器 As TaskScheduler.Trigger() = {New TaskScheduler.DailyTrigger(1), New TaskScheduler.DailyTrigger(2), New TaskScheduler.DailyTrigger(4), New TaskScheduler.WeeklyTrigger(1), New TaskScheduler.WeeklyTrigger(2), New TaskScheduler.MonthlyTrigger(1)}
+		Static 启动路径 As String = Process.GetCurrentProcess.MainModule.FileName
+		Dim 计划任务 As TaskScheduler.Task = 任务服务.GetTask($"本地{桌面锁屏}自动换")
+		If 桌面锁屏轮换周期.Item1 = 轮换周期.禁用 Then
+			定时器.Change(Timeout.Infinite, Timeout.Infinite)
+			If 桌面锁屏轮换周期.Item2 > 轮换周期.小时12 OrElse 桌面锁屏轮换周期.Item2 = 轮换周期.禁用 Then
+				Current.开机启动.Disable()
+			End If
+			If 计划任务 IsNot Nothing Then
+				计划任务.Enabled = False
+			End If
+		ElseIf 桌面锁屏轮换周期.Item1 < 轮换周期.天1 Then
+			Call Current.开机启动.RequestEnableAsync()
+			If 计划任务 IsNot Nothing Then
+				计划任务.Enabled = False
+			End If
+			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(桌面锁屏轮换周期.Item1)
+			定时器.Change(剩余时间(上次桌面锁屏时间, 时间跨度), 时间跨度)
+		Else
+			定时器.Change(Timeout.Infinite, Timeout.Infinite)
+			If 桌面锁屏轮换周期.Item2 > 轮换周期.小时12 OrElse 桌面锁屏轮换周期.Item2 = 轮换周期.禁用 Then
+				Current.开机启动.Disable()
+			End If
+			Dim 触发器 As TaskScheduler.Trigger = 轮换周期转触发器(桌面锁屏轮换周期.Item1 - 轮换周期.天1).Clone
+			If 计划任务 Is Nothing Then
+				计划任务 = 任务服务.AddTask($"本地{桌面锁屏}自动换", 触发器, New TaskScheduler.ExecAction(启动路径, $"换{桌面锁屏}"))
+				With 计划任务.Definition.Settings
+					.StartWhenAvailable = True
+					.DisallowStartIfOnBatteries = False
+					.StopIfGoingOnBatteries = False
+					.WakeToRun = True
+					.IdleSettings.StopOnIdleEnd = False
+				End With
+			Else
+				计划任务.Definition.Triggers.Item(0) = 触发器
+			End If
+			计划任务.RegisterChanges()
+			计划任务.Enabled = True
 		End If
 	End Sub
 End Module

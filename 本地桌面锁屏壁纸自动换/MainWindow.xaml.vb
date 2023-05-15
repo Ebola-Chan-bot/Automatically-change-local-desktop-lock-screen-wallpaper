@@ -1,7 +1,5 @@
 ﻿Imports 本地桌面锁屏壁纸自动换.My
 Imports 桌面壁纸取设
-Imports System.Threading
-Imports Microsoft.Win32.TaskScheduler
 Imports Windows.Storage
 Imports Microsoft.Win32
 Imports System.ComponentModel
@@ -83,69 +81,15 @@ Class MainWindow
 		End Try
 	End Sub
 
-	Shared ReadOnly 任务服务 As TaskService = TaskService.Instance
-	Shared ReadOnly 轮换周期转触发器 As Trigger() = {New DailyTrigger(1), New DailyTrigger(2), New DailyTrigger(4), New WeeklyTrigger(1), New WeeklyTrigger(2), New MonthlyTrigger(1)}
-	Shared ReadOnly 启动路径 As String = Process.GetCurrentProcess.MainModule.FileName
-
 	Private Sub 桌面_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		Static 计划任务 As Task
 		Settings.桌面轮换周期 = 桌面_更换周期.SelectedIndex
-		If Settings.桌面轮换周期 = 轮换周期.禁用 Then
-			桌面定时器.Change(Timeout.Infinite, Timeout.Infinite)
-			If Settings.锁屏轮换周期 > 轮换周期.小时12 OrElse Settings.锁屏轮换周期 = 轮换周期.禁用 Then
-				Current.开机启动.Disable()
-			End If
-			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
-			End If
-		ElseIf Settings.桌面轮换周期 < 轮换周期.天1 Then
-			Call Current.开机启动.RequestEnableAsync()
-			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
-			End If
-			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.桌面轮换周期)
-			桌面定时器.Change(剩余时间(Settings.上次桌面时间, 时间跨度), 时间跨度)
-		Else
-			桌面定时器.Change(Timeout.Infinite, Timeout.Infinite)
-			If Settings.锁屏轮换周期 > 轮换周期.小时12 OrElse Settings.锁屏轮换周期 = 轮换周期.禁用 Then
-				Current.开机启动.Disable()
-			End If
-			If IsNothing(计划任务) Then
-				计划任务 = 任务服务.AddTask("本地桌面自动换", 轮换周期转触发器(Settings.桌面轮换周期 - 轮换周期.天1), New ExecAction(启动路径, "换桌面"))
-			End If
-			计划任务.Enabled = True
-		End If
+		更换周期("桌面", (Settings.桌面轮换周期, Settings.锁屏轮换周期), 桌面定时器, Settings.上次桌面时间)
 		Current.消息($"桌面周期设置 {桌面_更换周期.SelectedValue}")
 	End Sub
 
 	Private Sub 锁屏_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		Static 计划任务 As Task
 		Settings.锁屏轮换周期 = 锁屏_更换周期.SelectedIndex
-		If Settings.锁屏轮换周期 = 轮换周期.禁用 Then
-			锁屏定时器.Change(Timeout.Infinite, Timeout.Infinite)
-			If Settings.桌面轮换周期 > 轮换周期.小时12 OrElse Settings.桌面轮换周期 = 轮换周期.禁用 Then
-				Current.开机启动.Disable()
-			End If
-			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
-			End If
-		ElseIf Settings.锁屏轮换周期 < 轮换周期.天1 Then
-			Call Current.开机启动.RequestEnableAsync()
-			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
-			End If
-			Dim 时间跨度 As TimeSpan = 轮换周期转时间跨度(Settings.锁屏轮换周期)
-			锁屏定时器.Change(剩余时间(Settings.上次锁屏时间, 时间跨度), 时间跨度)
-		Else
-			锁屏定时器.Change(Timeout.Infinite, Timeout.Infinite)
-			If Settings.桌面轮换周期 > 轮换周期.小时12 OrElse Settings.桌面轮换周期 = 轮换周期.禁用 Then
-				Current.开机启动.Disable()
-			End If
-			If IsNothing(计划任务) Then
-				计划任务 = 任务服务.AddTask("本地锁屏自动换", 轮换周期转触发器(Settings.锁屏轮换周期 - 轮换周期.天1), New ExecAction(启动路径, "换锁屏"))
-			End If
-			计划任务.Enabled = True
-		End If
+		更换周期("锁屏", (Settings.锁屏轮换周期, Settings.桌面轮换周期), 锁屏定时器, Settings.上次锁屏时间)
 		Current.消息($"锁屏周期设置 {锁屏_更换周期.SelectedValue}")
 	End Sub
 
