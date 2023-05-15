@@ -2,6 +2,7 @@
 #include "桌面壁纸取设.h"
 #include<winrt/base.h>
 #include<msclr/marshal.h>
+#include<vector>
 #pragma comment(lib,"shell32.lib")
 #pragma comment(lib,"ole32.lib")
 inline void COM异常检查(HRESULT 结果)
@@ -9,14 +10,14 @@ inline void COM异常检查(HRESULT 结果)
 	if (FAILED(结果))
 		System::Runtime::InteropServices::Marshal::ThrowExceptionForHR(结果);
 }
+IDesktopWallpaper* const 接口 = []()
+{
+	IDesktopWallpaper* 返回值;
+	COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&返回值));
+	return 返回值;
+}();
 namespace 桌面壁纸取设
 {
-	IDesktopWallpaper* const 接口 = []()
-	{
-		IDesktopWallpaper* 返回值;
-		COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&返回值));
-		return 返回值;
-	}();
 	监视器设备::监视器设备(uint8_t 监视器索引)
 	{
 		LPWSTR 返回值;
@@ -37,11 +38,17 @@ namespace 桌面壁纸取设
 	{
 		COM异常检查(接口->AdvanceSlideshow(监视器ID, (DESKTOP_SLIDESHOW_DIRECTION)向后));
 	}
-	System::Drawing::Rectangle 监视器设备::矩形()
+	bool 监视器设备::矩形(System::Drawing::Rectangle% NET返回值)
 	{
-		RECT 返回值;
-		COM异常检查(接口->GetMonitorRECT(监视器ID, &返回值));
-		return System::Drawing::Rectangle::FromLTRB(返回值.left, 返回值.top, 返回值.right, 返回值.bottom);
+		RECT COM返回值;
+		const HRESULT 结果 = 接口->GetMonitorRECT(监视器ID, &COM返回值);
+		NET返回值 = System::Drawing::Rectangle::FromLTRB(COM返回值.left, COM返回值.top, COM返回值.right, COM返回值.bottom);
+		return SUCCEEDED(结果);
+	}
+	bool 监视器设备::有效()
+	{
+		RECT COM返回值;
+		return SUCCEEDED(接口->GetMonitorRECT(监视器ID, &COM返回值));
 	}
 	System::String^ 监视器设备::壁纸路径::get()
 	{

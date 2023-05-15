@@ -28,15 +28,17 @@ namespace 桌面壁纸取设 {
 	{
 		const wchar_t* 监视器ID;
 	public:
-		//获取系统的监视器之一
+		//获取系统的监视器之一。构造后应当检查监视器是否有效。
 		监视器设备(uint8_t 监视器索引);
 		~监视器设备();
 		//与系统关联的监视器数。
 		static uint8_t 监视器设备计数();
 		//将墙纸切换到幻灯片放映中的下一个图像。
 		void 下一个桌面背景(bool 向后);
-		//显示矩形。
-		System::Drawing::Rectangle 矩形();
+		//显示矩形，按引用传入输出参数获取矩形，返回值指示监视器是否有效。
+		bool 矩形(System::Drawing::Rectangle%返回矩形);
+		//使用监视器前应当检查是否有效。也可以用获取矩形的方法检查有效性。
+		bool 有效();
 		property System::String^ 壁纸路径
 		{
 			System::String^ get();
