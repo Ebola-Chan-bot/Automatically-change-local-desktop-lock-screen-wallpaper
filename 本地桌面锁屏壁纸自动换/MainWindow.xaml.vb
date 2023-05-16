@@ -104,6 +104,7 @@ Class MainWindow
 	Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
 		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
+		目录浏览对话框.FileTypeFilter.Add("*")
 	End Sub
 
 	Private Sub MainWindow_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
