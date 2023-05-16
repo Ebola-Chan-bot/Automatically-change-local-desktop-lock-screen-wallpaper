@@ -24,7 +24,16 @@ Class MainWindow
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
 		Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
 		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
-		Static 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen"))
+		If Not IO.Directory.Exists(锁屏搜索目录) Then
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
+		End If
+		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
+		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
+		If 锁屏注册表 Is Nothing Then
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
+		End If
 		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
 	End Sub
 
