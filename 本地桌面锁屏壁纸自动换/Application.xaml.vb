@@ -24,9 +24,9 @@ Class Application
 			Case 启动类型.自启动
 				自启动()
 			Case 启动类型.换桌面
-				自动换桌面()
+				Call 自动换桌面()
 			Case 启动类型.换锁屏
-				自动换锁屏()
+				Call 自动换锁屏()
 		End Select
 		命名管道服务器流.Disconnect()
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
@@ -86,7 +86,7 @@ Class Application
 			Case "自启动"
 				自启动()
 			Case "换桌面"
-				Await 自动换桌面()
+				自动换桌面()
 				Shutdown()
 			Case "换锁屏"
 				Await 自动换锁屏()

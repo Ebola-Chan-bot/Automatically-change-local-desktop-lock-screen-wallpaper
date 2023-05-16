@@ -9,8 +9,8 @@
   IgnorableNamespaces="uap rescap">
 
 	<Identity
-	  Name="b3df9870-a519-4be6-b15f-97b52c559383"
-	  Publisher="CN=vhtmf"
+	  Name="4264644686220.6993758F38F5"
+	  Publisher="CN=埃博拉酱"
 	  Version="1.0.0.0" />
 
 	<Properties>
@@ -38,7 +38,7 @@
 			  BackgroundColor="transparent"
 			  Square150x150Logo="Images\Square150x150Logo.png"
 			  Square44x44Logo="Images\Square44x44Logo.png">
-				<uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
+				<uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png"  Square310x310Logo="Images\LargeTile.png"/>
 				<uap:SplashScreen Image="Images\SplashScreen.png" />
 			</uap:VisualElements>
 			<Extensions>
@@ -51,6 +51,14 @@
 					  TaskId="自启动任务"
 					  Enabled="false"
 					  DisplayName="本地桌面锁屏壁纸自动换" />
+				</uap5:Extension>
+				<uap5:Extension
+					Category="windows.appExecutionAlias"
+					Executable="本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.exe"
+					EntryPoint="Windows.FullTrustApplication">
+					<uap5:AppExecutionAlias>
+						<uap5:ExecutionAlias Alias="本地桌面锁屏壁纸自动换.exe" />
+					</uap5:AppExecutionAlias>
 				</uap5:Extension>
 			</Extensions>
 		</Application>
