@@ -154,6 +154,8 @@ Module 自动换
 					.StopIfGoingOnBatteries = False
 					.WakeToRun = True
 					.IdleSettings.StopOnIdleEnd = False
+					.RestartInterval = FromHours(2)
+					.RestartCount = 11
 				End With
 			Else
 				计划任务.Definition.Triggers.Item(0) = 触发器
