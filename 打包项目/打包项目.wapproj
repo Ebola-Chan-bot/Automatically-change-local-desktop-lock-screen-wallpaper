@@ -56,7 +56,6 @@
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <NoWarn>$(NoWarn);NU1702</NoWarn>
-    <EntryPointProjectUniqueName>..\本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.vbproj</EntryPointProjectUniqueName>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
@@ -65,6 +64,7 @@
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <PackageCertificateKeyFile>打包项目_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <EntryPointProjectUniqueName>..\本地桌面锁屏壁纸自动换\桌面锁屏自动换.vbproj</EntryPointProjectUniqueName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <AppxBundle>Always</AppxBundle>
@@ -159,6 +159,6 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.vbproj" />
+    <ProjectReference Include="..\本地桌面锁屏壁纸自动换\桌面锁屏自动换.vbproj" />
   </ItemGroup>
 </Project>

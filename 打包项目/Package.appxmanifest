@@ -14,7 +14,7 @@
 	  Version="1.0.1.0" />
 
 	<Properties>
-		<DisplayName>本地桌面锁屏壁纸自动换</DisplayName>
+		<DisplayName>桌面锁屏自动换</DisplayName>
 		<PublisherDisplayName>埃博拉酱</PublisherDisplayName>
 		<Logo>Images\StoreLogo.png</Logo>
 	</Properties>
@@ -33,7 +33,7 @@
 		  Executable="$targetnametoken$.exe"
 		  EntryPoint="$targetentrypoint$">
 			<uap:VisualElements
-			  DisplayName="本地桌面锁屏壁纸自动换"
+			  DisplayName="桌面锁屏自动换"
 			  Description="在指定本地目录中随机抽一张图，自动定时轮换桌面锁屏壁纸"
 			  BackgroundColor="transparent"
 			  Square150x150Logo="Images\Square150x150Logo.png"
@@ -44,20 +44,20 @@
 			<Extensions>
 				<uap5:Extension
 				  Category="windows.startupTask"
-				  Executable="本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.exe"
+				  Executable="桌面锁屏自动换\桌面锁屏自动换.exe"
 				  EntryPoint="Windows.FullTrustApplication"
 				  uap10:Parameters="自启动">
 					<uap5:StartupTask
 					  TaskId="自启动任务"
 					  Enabled="false"
-					  DisplayName="本地桌面锁屏壁纸自动换" />
+					  DisplayName="桌面锁屏自动换" />
 				</uap5:Extension>
 				<uap5:Extension
 					Category="windows.appExecutionAlias"
-					Executable="本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.exe"
+					Executable="桌面锁屏自动换\桌面锁屏自动换.exe"
 					EntryPoint="Windows.FullTrustApplication">
 					<uap5:AppExecutionAlias>
-						<uap5:ExecutionAlias Alias="本地桌面锁屏壁纸自动换.exe" />
+						<uap5:ExecutionAlias Alias="桌面锁屏自动换.exe" />
 					</uap5:AppExecutionAlias>
 				</uap5:Extension>
 			</Extensions>

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "本地桌面锁屏壁纸自动换", "本地桌面锁屏壁纸自动换\本地桌面锁屏壁纸自动换.vbproj", "{F9DF67BC-02EC-4F2A-993C-BFACAFF91E03}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "桌面锁屏自动换", "本地桌面锁屏壁纸自动换\桌面锁屏自动换.vbproj", "{F9DF67BC-02EC-4F2A-993C-BFACAFF91E03}"
 EndProject
 Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "打包项目", "打包项目\打包项目.wapproj", "{20C9A3B0-CA95-4697-919D-7591798B398F}"
 EndProject
