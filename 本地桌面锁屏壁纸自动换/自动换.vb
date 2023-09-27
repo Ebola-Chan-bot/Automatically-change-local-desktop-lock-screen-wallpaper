@@ -61,6 +61,7 @@ Module 自动换
 	End Sub
 
 	Friend Event 自动换_锁屏()
+	ReadOnly 锁屏模式设置命令 As New ProcessStartInfo With {.FileName = "powershell.exe", .Arguments = "[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager',$true).SetValue('RotatingLockScreenEnabled', 0)", .CreateNoWindow = True}
 
 	'必须返回Task才能捕获异常
 	Async Function 换锁屏() As Task
@@ -71,6 +72,7 @@ Module 自动换
 			Throw New ArgumentException("锁屏图集目录无效", ex.ParamName, ex.InnerException)
 		End Try
 		Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
+		Process.Start(锁屏模式设置命令)
 		Await Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(壁纸路径))
 		Current.消息($"设置锁屏 {壁纸路径}")
 		Settings.上次锁屏时间 = Now
