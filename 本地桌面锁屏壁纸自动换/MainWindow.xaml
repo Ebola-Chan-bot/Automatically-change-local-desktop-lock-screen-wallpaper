@@ -25,8 +25,8 @@
 					<ListView.ItemTemplate>
 						<DataTemplate>
 							<StackPanel x:Name="标尺">
-								<TextBlock Text="{Binding Path=路径名称, Mode=OneWay}"/>
-								<Image Source="{Binding Path=壁纸路径, Mode=OneWay}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
+								<TextBlock Text="{Binding Path=监视器, Mode=OneWay}"/>
+								<Image Source="{Binding Path=壁纸图, Mode=OneWay}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
 							</StackPanel>
 						</DataTemplate>
 					</ListView.ItemTemplate>

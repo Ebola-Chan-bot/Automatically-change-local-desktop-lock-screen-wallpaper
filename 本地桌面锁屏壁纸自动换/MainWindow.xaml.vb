@@ -2,16 +2,33 @@
 Imports 桌面壁纸取设
 Imports Windows.Storage
 Imports Microsoft.Win32
-Imports System.ComponentModel
 
 Class MainWindow
+	Private Structure 桌面呈现结构
+		Property 监视器 As String
+		Property 壁纸图 As BitmapImage
+	End Structure
+
 	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
 		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
-		Dim 有效监视器 As New List(Of 监视器设备)
+		Dim 有效监视器 As New List(Of 桌面呈现结构)
 		For a As Byte = 0 To 监视器个数
 			Dim 新设备 As New 监视器设备(a)
 			If 新设备.有效 Then
-				有效监视器.Add(新设备)
+				Dim 呈现 As New 桌面呈现结构 With {.监视器 = 新设备.路径名称}
+				Dim 壁纸路径 As New Uri(新设备.壁纸路径)
+				Try
+					呈现.壁纸图 = New BitmapImage(壁纸路径)
+				Catch ex As IO.IOException
+					呈现.壁纸图 = New BitmapImage
+					With 呈现.壁纸图
+						.BeginInit()
+						.CreateOptions = BitmapCreateOptions.IgnoreColorProfile
+						.UriSource = 壁纸路径
+						.EndInit()
+					End With
+				End Try
+				有效监视器.Add(呈现)
 			End If
 		Next
 		Try
@@ -34,6 +51,7 @@ Class MainWindow
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
 		End If
+		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
 		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
 	End Sub
 
@@ -116,7 +134,7 @@ Class MainWindow
 		目录浏览对话框.FileTypeFilter.Add("*")
 	End Sub
 
-	Private Sub MainWindow_Closing(sender As Object, e As CancelEventArgs) Handles Me.Closing
+	Private Sub MainWindow_Closing(sender As Object, e As ComponentModel.CancelEventArgs) Handles Me.Closing
 		Settings.Save()
 	End Sub
 End Class
