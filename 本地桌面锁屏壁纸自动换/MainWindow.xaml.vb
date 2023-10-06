@@ -16,7 +16,11 @@ Class MainWindow
 			Dim 新设备 As New 监视器设备(a)
 			If 新设备.有效 Then
 				Dim 呈现 As New 桌面呈现结构 With {.监视器 = 新设备.路径名称}
-				Dim 壁纸路径 As New Uri(新设备.壁纸路径)
+				Dim 路径字符串 As String = 新设备.壁纸路径
+				If 路径字符串 = "" Then
+					Continue For
+				End If
+				Dim 壁纸路径 As New Uri(路径字符串)
 				Try
 					呈现.壁纸图 = New BitmapImage(壁纸路径)
 				Catch ex As IO.IOException
