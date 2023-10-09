@@ -81,7 +81,7 @@ namespace 桌面壁纸取设
 	{
 		COM异常检查(接口->SetBackgroundColor(新值.ToArgb()));
 	}
-	桌面壁纸位置 桌面壁纸::位置()
+	桌面壁纸位置 桌面壁纸::位置::get()
 	{
 		DESKTOP_WALLPAPER_POSITION 返回值;
 		COM异常检查(接口->GetPosition(&返回值));
@@ -108,7 +108,7 @@ namespace 桌面壁纸取设
 		COM异常检查(SHCreateShellItemArrayFromShellItem(外壳项目.get(), IID_PPV_ARGS(外壳项目数组.put())));
 		COM异常检查(接口->SetSlideshow(外壳项目数组.get()));
 	}
-	桌面幻灯片显示状态 桌面壁纸::幻灯片状态()
+	桌面幻灯片显示状态 桌面壁纸::幻灯片状态::get()
 	{
 		桌面幻灯片显示状态 状态;
 		COM异常检查(接口->GetStatus(&状态.状态));
