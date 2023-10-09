@@ -125,15 +125,16 @@ Module 自动换
 	Sub 更换周期(桌面锁屏 As String, 桌面锁屏轮换周期 As (Byte, Byte), 定时器 As Timer, 上次桌面锁屏时间 As Date)
 		Static 任务服务 As TaskScheduler.TaskService = TaskScheduler.TaskService.Instance
 		Static 轮换周期转触发器 As TaskScheduler.Trigger() = {New TaskScheduler.DailyTrigger(1), New TaskScheduler.DailyTrigger(2), New TaskScheduler.DailyTrigger(4), New TaskScheduler.WeeklyTrigger(1), New TaskScheduler.WeeklyTrigger(2), New TaskScheduler.MonthlyTrigger(1)}
-		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\本地桌面锁屏壁纸自动换.exe")
-		Dim 计划任务 As TaskScheduler.Task = 任务服务.GetTask($"本地{桌面锁屏}自动换")
+		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
+		Dim 任务名称 As String = $"本地{桌面锁屏}自动换"
+		Dim 计划任务 As TaskScheduler.Task = 任务服务.GetTask(任务名称)
 		If 桌面锁屏轮换周期.Item1 = 轮换周期.禁用 Then
 			定时器.Change(Timeout.Infinite, Timeout.Infinite)
 			If 桌面锁屏轮换周期.Item2 > 轮换周期.小时12 OrElse 桌面锁屏轮换周期.Item2 = 轮换周期.禁用 Then
 				Current.开机启动.Disable()
 			End If
 			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
+				任务服务.RootFolder.DeleteTask(任务名称)
 			End If
 		ElseIf 桌面锁屏轮换周期.Item1 < 轮换周期.天1 Then
 			Call Current.开机启动.RequestEnableAsync()
