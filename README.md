@@ -2,4 +2,4 @@ Windows 自带的桌面幻灯片切换时间可选范围有限，锁屏则是要
 
 此应用可在 Microsoft Store 上下载安装。如果你没有 Microsoft Store，也可以在Release中下载旁加载程序包。
 
-注意，必须安装 Microsoft Visual C++ 2015-2022 Redistributable (x64) （俗称VC运行库），否则应用无法启动。
+注意，必须安装 [Microsoft Visual C++ 2015-2022 Redistributable (x64) （俗称VC运行库）](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist)，否则应用无法启动。
