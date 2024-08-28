@@ -81,25 +81,6 @@ Class MainWindow
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
 
-	Sub New()
-
-		' 此调用是设计器所必需的。
-		InitializeComponent()
-
-		' 在 InitializeComponent() 调用之后添加任何初始化。
-		更新当前桌面()
-		更新当前锁屏()
-		桌面_更换周期.SelectedIndex = Settings.桌面轮换周期
-		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
-		桌面_图集目录.Text = Settings.所有桌面目录
-		锁屏_图集目录.Text = Settings.所有锁屏目录
-		Current.当前窗口 = Me
-		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
-		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
-		AddHandler 自动换_桌面, AddressOf 更新当前桌面
-		AddHandler 自动换_锁屏, AddressOf 更新当前锁屏
-	End Sub
-
 	Private Async Sub 桌面_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
 		If 目录 IsNot Nothing Then
@@ -153,7 +134,17 @@ Class MainWindow
 	End Sub
 
 	Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
+		更新当前桌面()
+		更新当前锁屏()
+		桌面_更换周期.SelectedIndex = Settings.桌面轮换周期
+		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
+		桌面_图集目录.Text = Settings.所有桌面目录
+		锁屏_图集目录.Text = Settings.所有锁屏目录
+		Current.当前窗口 = Me
+		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
+		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
+		AddHandler 自动换_桌面, AddressOf 更新当前桌面
+		AddHandler 自动换_锁屏, AddressOf 更新当前锁屏
 		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
 		目录浏览对话框.FileTypeFilter.Add("*")
 	End Sub
