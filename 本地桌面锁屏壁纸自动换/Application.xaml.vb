@@ -32,6 +32,8 @@ Class Application
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
 	End Sub
 
+	Private 应该ShutDown As Boolean = False
+
 	Sub New()
 		Try
 			命名管道服务器流 = New NamedPipeServerStream("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous Or PipeOptions.CurrentUserOnly)
@@ -48,7 +50,8 @@ Class Application
 				Case Else
 					命名管道客户端流.WriteByte(启动类型.用户启动)
 			End Select
-			Shutdown()
+			'延迟ShutDown，否则会在事件查看器中出现无意义的报错说ShutDownMode不能在关闭时设置
+			应该ShutDown = True
 			Exit Sub
 		End Try
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
@@ -76,6 +79,10 @@ Class Application
 	Friend 开机启动 As StartupTask
 
 	Private Async Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
+		If 应该ShutDown Then
+			Shutdown()
+			Exit Sub
+		End If
 		日志文件 = Await ApplicationData.Current.TemporaryFolder.CreateFileAsync("日志.log", CreationCollisionOption.OpenIfExists)
 		日志路径 = 日志文件.Path
 		Dim 随机访问流 As IRandomAccessStream = Await 日志文件.OpenAsync(FileAccessMode.ReadWrite)
