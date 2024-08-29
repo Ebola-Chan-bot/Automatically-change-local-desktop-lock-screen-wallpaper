@@ -63,20 +63,38 @@ Class MainWindow
 	End Sub
 
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
-		Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
-		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
-		If Not IO.Directory.Exists(锁屏搜索目录) Then
-			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
-			Exit Sub
-		End If
-		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
-		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
-		If 锁屏注册表 Is Nothing Then
-			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
-			Exit Sub
-		End If
-		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
-		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
+		Dim 行号 As Byte = 0
+		Try
+			Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
+			行号 += 1 '1
+			Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
+			行号 += 1 '2
+			If Not IO.Directory.Exists(锁屏搜索目录) Then
+				行号 += 1 '3
+				锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+				行号 += 1 '4
+				Exit Sub
+				行号 += 1 '5
+			End If
+			行号 += 1 '6
+			Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
+			行号 += 1 '7
+			Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
+			行号 += 1 '8
+			If 锁屏注册表 Is Nothing Then
+				行号 += 1 '9
+				锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+				行号 += 1 '10
+				Exit Sub
+				行号 += 1 '11
+			End If
+			'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
+			行号 += 1 '12
+			锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
+			行号 += 1 '13
+		Catch ex As NullReferenceException
+			Throw New NullReferenceException(ex.Message + $"行号：{行号}")
+		End Try
 	End Sub
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
