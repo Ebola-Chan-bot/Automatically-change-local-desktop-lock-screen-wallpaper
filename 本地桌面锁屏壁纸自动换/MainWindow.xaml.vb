@@ -64,6 +64,10 @@ Class MainWindow
 
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
 		Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
+		If 用户SID Is Nothing Then
+			锁屏图片错误.Text = "未能获取用户SID"
+			Exit Sub
+		End If
 		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
 		If Not IO.Directory.Exists(锁屏搜索目录) Then
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
