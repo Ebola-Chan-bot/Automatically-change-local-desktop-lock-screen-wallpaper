@@ -2,6 +2,7 @@
 Imports 桌面壁纸取设
 Imports Windows.Storage
 Imports Microsoft.Win32
+Imports System.Security.Principal
 
 Class MainWindow
 	Private Structure 桌面呈现结构
@@ -63,10 +64,17 @@ Class MainWindow
 	End Sub
 
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
-		Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
+		Static 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent
+		If 当前用户 Is Nothing Then
+			Throw New NullReferenceException("当前用户获取失败")
+		End If
+		Static 安全描述符 As SecurityIdentifier = 当前用户.User
+		If 安全描述符 Is Nothing Then
+			Throw New NullReferenceException("安全描述符获取失败")
+		End If
+		Static 用户SID As String = 安全描述符.Value
 		If 用户SID Is Nothing Then
-			锁屏图片错误.Text = "未能获取用户SID"
-			Exit Sub
+			Throw New NullReferenceException("用户SID获取失败")
 		End If
 		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
 		If Not IO.Directory.Exists(锁屏搜索目录) Then
