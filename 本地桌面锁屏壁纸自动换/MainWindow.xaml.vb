@@ -64,18 +64,7 @@ Class MainWindow
 	End Sub
 
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
-		Static 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent
-		If 当前用户 Is Nothing Then
-			Throw New NullReferenceException("当前用户获取失败")
-		End If
-		Static 安全描述符 As SecurityIdentifier = 当前用户.User
-		If 安全描述符 Is Nothing Then
-			Throw New NullReferenceException("安全描述符获取失败")
-		End If
-		Static 用户SID As String = 安全描述符.Value
-		If 用户SID Is Nothing Then
-			Throw New NullReferenceException("用户SID获取失败")
-		End If
+		Static 用户SID As String = WindowsIdentity.GetCurrent.User.Value
 		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
 		If Not IO.Directory.Exists(锁屏搜索目录) Then
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
@@ -84,8 +73,20 @@ Class MainWindow
 		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
 		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
 		If 锁屏注册表 Is Nothing Then
+			If 锁屏图片错误 Is Nothing Then
+				Throw New NullReferenceException("锁屏图片错误控件未加载")
+			End If
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
+		End If
+		If 锁屏_当前图片 Is Nothing Then
+			Throw New NullReferenceException("锁屏_当前图片控件未加载")
+		End If
+		If 锁屏搜索目录 Is Nothing Then
+			Throw New NullReferenceException("锁屏搜索目录无效")
+		End If
+		If 锁屏注册表.GetValue(Nothing) Is Nothing Then
+			Throw New NullReferenceException("锁屏注册表值为空")
 		End If
 		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
 		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
