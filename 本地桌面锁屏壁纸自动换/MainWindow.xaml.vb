@@ -73,23 +73,16 @@ Class MainWindow
 		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
 		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
 		If 锁屏注册表 Is Nothing Then
-			If 锁屏图片错误 Is Nothing Then
-				Throw New NullReferenceException("锁屏图片错误控件未加载")
-			End If
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
 		End If
-		If 锁屏_当前图片 Is Nothing Then
-			Throw New NullReferenceException("锁屏_当前图片控件未加载")
-		End If
-		If 锁屏搜索目录 Is Nothing Then
-			Throw New NullReferenceException("锁屏搜索目录无效")
-		End If
-		If 锁屏注册表.GetValue(Nothing) Is Nothing Then
-			Throw New NullReferenceException("锁屏注册表值为空")
+		Dim 锁屏历史 As String = 锁屏注册表.GetValue(Nothing)
+		If 锁屏历史 Is Nothing Then
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
 		End If
 		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
-		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
+		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & 锁屏历史.Chars(0), "LockScreen.jpg")))
 	End Sub
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
@@ -167,7 +160,7 @@ Class MainWindow
 
 	Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
-		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
+		winrt.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
 		目录浏览对话框.FileTypeFilter.Add("*")
 	End Sub
 
