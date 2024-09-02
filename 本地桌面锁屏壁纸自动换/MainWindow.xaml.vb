@@ -2,6 +2,7 @@
 Imports 桌面壁纸取设
 Imports Windows.Storage
 Imports Microsoft.Win32
+Imports System.Security.Principal
 
 Class MainWindow
 	Private Structure 桌面呈现结构
@@ -63,41 +64,54 @@ Class MainWindow
 	End Sub
 
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
-		Dim 行号 As Byte = 0
-		Try
-			Static 用户SID As String = Security.Principal.WindowsIdentity.GetCurrent.User.Value
-			行号 += 1 '1
-			Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
-			行号 += 1 '2
-			If Not IO.Directory.Exists(锁屏搜索目录) Then
-				行号 += 1 '3
-				锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
-				行号 += 1 '4
-				Exit Sub
-				行号 += 1 '5
+		Static 用户SID As String = WindowsIdentity.GetCurrent.User.Value
+		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
+		If Not IO.Directory.Exists(锁屏搜索目录) Then
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
+		End If
+		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
+		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
+		If 锁屏注册表 Is Nothing Then
+			If 锁屏图片错误 Is Nothing Then
+				Throw New NullReferenceException("锁屏图片错误控件未加载")
 			End If
-			行号 += 1 '6
-			Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
-			行号 += 1 '7
-			Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
-			行号 += 1 '8
-			If 锁屏注册表 Is Nothing Then
-				行号 += 1 '9
-				锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
-				行号 += 1 '10
-				Exit Sub
-				行号 += 1 '11
-			End If
-			'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
-			行号 += 1 '12
-			锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
-			行号 += 1 '13
-		Catch ex As NullReferenceException
-			Throw New NullReferenceException(ex.Message + $"行号：{行号}")
-		End Try
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
+		End If
+		If 锁屏_当前图片 Is Nothing Then
+			Throw New NullReferenceException("锁屏_当前图片控件未加载")
+		End If
+		If 锁屏搜索目录 Is Nothing Then
+			Throw New NullReferenceException("锁屏搜索目录无效")
+		End If
+		If 锁屏注册表.GetValue(Nothing) Is Nothing Then
+			Throw New NullReferenceException("锁屏注册表值为空")
+		End If
+		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
+		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & DirectCast(锁屏注册表.GetValue(Nothing), String).Chars(0), "LockScreen.jpg")))
 	End Sub
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
+
+	Sub New()
+
+		' 此调用是设计器所必需的。
+		InitializeComponent()
+
+		' 在 InitializeComponent() 调用之后添加任何初始化。
+		更新当前桌面()
+		更新当前锁屏()
+		桌面_更换周期.SelectedIndex = Settings.桌面轮换周期
+		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
+		桌面_图集目录.Text = Settings.所有桌面目录
+		锁屏_图集目录.Text = Settings.所有锁屏目录
+		Current.当前窗口 = Me
+		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
+		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
+		AddHandler 自动换_桌面, AddressOf 更新当前桌面
+		AddHandler 自动换_锁屏, AddressOf 更新当前锁屏
+	End Sub
 
 	Private Async Sub 桌面_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
@@ -152,17 +166,7 @@ Class MainWindow
 	End Sub
 
 	Private Sub MainWindow_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
-		更新当前桌面()
-		更新当前锁屏()
-		桌面_更换周期.SelectedIndex = Settings.桌面轮换周期
-		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
-		桌面_图集目录.Text = Settings.所有桌面目录
-		锁屏_图集目录.Text = Settings.所有锁屏目录
-		Current.当前窗口 = Me
-		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
-		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
-		AddHandler 自动换_桌面, AddressOf 更新当前桌面
-		AddHandler 自动换_锁屏, AddressOf 更新当前锁屏
+		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
 		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
 		目录浏览对话框.FileTypeFilter.Add("*")
 	End Sub
