@@ -83,7 +83,10 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End If
+
+		'这一行必须用打包项目启动UWP框架才能执行，纯WPF框架不支持此API
 		日志文件 = Await ApplicationData.Current.TemporaryFolder.CreateFileAsync("日志.log", CreationCollisionOption.OpenIfExists)
+
 		日志路径 = 日志文件.Path
 		Dim 随机访问流 As IRandomAccessStream = Await 日志文件.OpenAsync(FileAccessMode.ReadWrite)
 		随机访问流.Seek(随机访问流.Size)
