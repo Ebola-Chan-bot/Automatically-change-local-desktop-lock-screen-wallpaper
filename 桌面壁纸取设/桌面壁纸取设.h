@@ -78,4 +78,32 @@ namespace 桌面壁纸取设 {
 			void set(幻灯片选项结构);
 		}
 	};
+	public enum class 轮换周期枚举
+	{
+		禁用,
+		分钟1,
+		分钟2,
+		分钟5,
+		分钟10,
+		分钟15,
+		分钟30,
+		小时1,
+		小时2,
+		小时3,
+		小时6,
+		小时12,
+		天1,
+		天2,
+		天4,
+		周1,
+		周2,
+		月1
+	};
+	public value struct 配置文件
+	{
+		property 轮换周期枚举 轮换周期;
+		property System::String^ 图集目录;
+		static property 配置文件 默认桌面配置;
+		static property 配置文件 默认锁屏配置;
+	};
 }
