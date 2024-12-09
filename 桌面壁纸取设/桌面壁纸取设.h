@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include<stdint.h>
 #include<ShObjIdl.h>
+#include<winrt/windows.foundation.h>
 namespace 桌面壁纸取设 {
 	public enum class 桌面壁纸位置:uint8_t
 	{
@@ -101,9 +102,28 @@ namespace 桌面壁纸取设 {
 	};
 	public value struct 配置文件
 	{
-		property 轮换周期枚举 轮换周期;
-		property System::String^ 图集目录;
-		static property 配置文件 默认桌面配置;
-		static property 配置文件 默认锁屏配置;
+		property 轮换周期枚举 轮换周期
+		{
+			轮换周期枚举 get();
+			void set(轮换周期枚举);
+		}
+		property System::String^ 图集目录
+		{
+			System::String^ get();
+			void set(System::String^);
+		}
+		static property 配置文件 默认桌面配置
+		{
+			配置文件 get();
+		}
+		static property 配置文件 默认锁屏配置
+		{
+			配置文件 get();
+		}
+		//可以创建不存在的监视器
+		static 配置文件 获取监视器配置(System::String^ 监视器名称);
+		static void 初始化();
+	protected:
+		size_t 索引;
 	};
 }
