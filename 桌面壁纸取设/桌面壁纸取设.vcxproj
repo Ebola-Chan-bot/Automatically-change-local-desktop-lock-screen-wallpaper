@@ -52,11 +52,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>DesktopWallpaperGetSet</TargetName>
-    <ExternalIncludePath>C:\Users\vhtmf\source\repos\Serialized-memory-model\nuget\build\native;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>DesktopWallpaperGetSet</TargetName>
-    <ExternalIncludePath>C:\Users\vhtmf\source\repos\Serialized-memory-model\nuget\build\native;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
