@@ -27,6 +27,44 @@
 							<StackPanel x:Name="标尺">
 								<TextBlock Text="{Binding Path=监视器, Mode=OneWay}"/>
 								<Image Source="{Binding Path=壁纸图, Mode=OneWay}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto"/>
+										<ColumnDefinition/>
+										<ColumnDefinition Width="Auto"/>
+									</Grid.ColumnDefinitions>
+									<Grid.RowDefinitions>
+										<RowDefinition Height="Auto"/>
+										<RowDefinition Height="Auto"/>
+									</Grid.RowDefinitions>
+									<TextBlock Text="自动更换周期：" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center"/>
+									<ComboBox Grid.Column="1" Grid.Row="0" SelectedIndex="{Binding Path=更换周期,Mode=TwoWay}">
+										<ComboBoxItem Content="禁用"/>
+										<ComboBoxItem Content="1分钟"/>
+										<ComboBoxItem Content="2分钟"/>
+										<ComboBoxItem Content="3分钟"/>
+										<ComboBoxItem Content="5分钟"/>
+										<ComboBoxItem Content="10分钟"/>
+										<ComboBoxItem Content="15分钟"/>
+										<ComboBoxItem Content="30分钟"/>
+										<ComboBoxItem Content="1小时"/>
+										<ComboBoxItem Content="2小时"/>
+										<ComboBoxItem Content="3小时"/>
+										<ComboBoxItem Content="6小时"/>
+										<ComboBoxItem Content="12小时"/>
+										<ComboBoxItem Content="1天"/>
+										<ComboBoxItem Content="2天"/>
+										<ComboBoxItem Content="4天"/>
+										<ComboBoxItem Content="1周"/>
+										<ComboBoxItem Content="2周"/>
+										<ComboBoxItem Content="1个月"/>
+										<ComboBoxItem Content="默认"/>
+									</ComboBox>
+									<Button Grid.Column="2" Grid.Row="0" Content="立即更换"/>
+									<TextBlock Text="壁纸图集目录：" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center"/>
+									<TextBlock Grid.Column="1" Grid.Row="1" VerticalAlignment="Center" Text="{Binding Path=图集目录,Mode=OneWay}"/>
+									<Button Content="浏览" Grid.Column="2" Grid.Row="1"/>
+								</Grid>
 							</StackPanel>
 						</DataTemplate>
 					</ListView.ItemTemplate>
@@ -51,6 +89,7 @@
 						<ComboBoxItem Content="禁用"/>
 						<ComboBoxItem Content="1分钟"/>
 						<ComboBoxItem Content="2分钟"/>
+						<ComboBoxItem Content="3分钟"/>
 						<ComboBoxItem Content="5分钟"/>
 						<ComboBoxItem Content="10分钟"/>
 						<ComboBoxItem Content="15分钟"/>
@@ -102,6 +141,7 @@
 						<ComboBoxItem Content="禁用"/>
 						<ComboBoxItem Content="1分钟"/>
 						<ComboBoxItem Content="2分钟"/>
+						<ComboBoxItem Content="3分钟"/>
 						<ComboBoxItem Content="5分钟"/>
 						<ComboBoxItem Content="10分钟"/>
 						<ComboBoxItem Content="15分钟"/>

@@ -6,8 +6,27 @@ Imports System.Security.Principal
 
 Class MainWindow
 	Private Structure 桌面呈现结构
-		Property 监视器 As String
+		ReadOnly Property 监视器 As String
 		Property 壁纸图 As BitmapImage
+		Property 更换周期 As 轮换周期
+			Get
+				Return If(注册表更换周期.GetValue(监视器), 轮换周期.默认)
+			End Get
+			Set(value As 轮换周期)
+				注册表更换周期.SetValue(监视器, value)
+			End Set
+		End Property
+		Property 图集目录 As String
+			Get
+				Return If(注册表图集目录.GetValue(监视器), "默认")
+			End Get
+			Set(value As String)
+				注册表图集目录.SetValue(监视器, value)
+			End Set
+		End Property
+		Sub New(监视器 As String)
+			Me.监视器 = 监视器
+		End Sub
 	End Structure
 
 	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
@@ -17,7 +36,7 @@ Class MainWindow
 		For a As Byte = 0 To 监视器个数
 			Dim 新设备 As New 监视器设备(a)
 			If 新设备.有效 Then
-				Dim 呈现 As New 桌面呈现结构 With {.监视器 = 新设备.路径名称}
+				Dim 呈现 As New 桌面呈现结构(新设备.路径名称)
 				Dim 路径字符串 As String = 新设备.壁纸路径
 				If 路径字符串 = "" Then
 					Continue For
@@ -95,10 +114,10 @@ Class MainWindow
 		' 在 InitializeComponent() 调用之后添加任何初始化。
 		更新当前桌面()
 		更新当前锁屏()
-		桌面_更换周期.SelectedIndex = Settings.桌面轮换周期
-		锁屏_更换周期.SelectedIndex = Settings.锁屏轮换周期
-		桌面_图集目录.Text = Settings.所有桌面目录
-		锁屏_图集目录.Text = Settings.所有锁屏目录
+		桌面_更换周期.SelectedIndex = If(注册表更换周期.GetValue("桌面"), 轮换周期.禁用)
+		锁屏_更换周期.SelectedIndex = If(注册表更换周期.GetValue("锁屏"), 轮换周期.禁用)
+		桌面_图集目录.Text = If(注册表图集目录.GetValue("桌面"), "")
+		锁屏_图集目录.Text = If(注册表图集目录.GetValue("锁屏"), "")
 		Current.当前窗口 = Me
 		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
 		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
@@ -109,16 +128,16 @@ Class MainWindow
 	Private Async Sub 桌面_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
 		If 目录 IsNot Nothing Then
-			Settings.所有桌面目录 = 目录.Path
-			桌面_图集目录.Text = Settings.所有桌面目录
+			注册表图集目录.SetValue("桌面", 目录.Path)
+			桌面_图集目录.Text = 目录.Path
 		End If
 	End Sub
 
 	Private Async Sub 锁屏_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
 		If 目录 IsNot Nothing Then
-			Settings.所有锁屏目录 = 目录.Path
-			锁屏_图集目录.Text = Settings.所有锁屏目录
+			注册表图集目录.SetValue("锁屏", 目录.Path)
+			锁屏_图集目录.Text = 目录.Path
 		End If
 	End Sub
 
@@ -139,14 +158,14 @@ Class MainWindow
 	End Sub
 
 	Private Sub 桌面_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		Settings.桌面轮换周期 = 桌面_更换周期.SelectedIndex
-		更换周期("桌面", (Settings.桌面轮换周期, Settings.锁屏轮换周期), 桌面定时器, Settings.上次桌面时间)
+		注册表更换周期.SetValue("桌面", 桌面_更换周期.SelectedIndex)
+		更换周期("桌面", (桌面_更换周期.SelectedIndex, 锁屏_更换周期.SelectedIndex), 桌面定时器, 注册表根.GetValue("上次桌面时间"))
 		Current.消息($"桌面周期设置 {桌面_更换周期.SelectedValue}")
 	End Sub
 
 	Private Sub 锁屏_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		Settings.锁屏轮换周期 = 锁屏_更换周期.SelectedIndex
-		更换周期("锁屏", (Settings.锁屏轮换周期, Settings.桌面轮换周期), 锁屏定时器, Settings.上次锁屏时间)
+		注册表更换周期.SetValue("锁屏", 锁屏_更换周期.SelectedIndex)
+		更换周期("锁屏", (锁屏_更换周期.SelectedIndex, 桌面_更换周期.SelectedIndex), 锁屏定时器, Settings.上次锁屏时间)
 		Current.消息($"锁屏周期设置 {锁屏_更换周期.SelectedValue}")
 	End Sub
 

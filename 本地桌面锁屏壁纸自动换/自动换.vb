@@ -9,6 +9,7 @@ Enum 轮换周期 As Byte
 	禁用
 	分钟1
 	分钟2
+	分钟3
 	分钟5
 	分钟10
 	分钟15
@@ -24,6 +25,7 @@ Enum 轮换周期 As Byte
 	周1
 	周2
 	月1
+	默认
 End Enum
 
 Enum 启动类型 As Byte
@@ -34,7 +36,11 @@ Enum 启动类型 As Byte
 End Enum
 
 Module 自动换
-	Friend ReadOnly 轮换周期转时间跨度 As TimeSpan() = {Timeout.InfiniteTimeSpan, FromMinutes(1), FromMinutes(2), FromMinutes(5), FromMinutes(10), FromMinutes(15), FromMinutes(30), FromHours(1), FromHours(2), FromHours(3), FromHours(6), FromHours(12)}
+
+	Friend ReadOnly 注册表根 As RegistryKey = Registry.CurrentUser.CreateSubKey("Software\本地桌面锁屏壁纸自动换")
+	Friend ReadOnly 注册表更换周期 As RegistryKey = 注册表根.CreateSubKey("更换周期")
+	Friend ReadOnly 注册表图集目录 As RegistryKey = 注册表根.CreateSubKey("图集目录")
+	Friend ReadOnly 轮换周期转时间跨度 As TimeSpan() = {Timeout.InfiniteTimeSpan, FromMinutes(1), FromMinutes(2), FromMinutes(3), FromMinutes(5), FromMinutes(10), FromMinutes(15), FromMinutes(30), FromHours(1), FromHours(2), FromHours(3), FromHours(6), FromHours(12)}
 
 	ReadOnly 随机生成器 As New Random
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
@@ -43,7 +49,7 @@ Module 自动换
 	Sub 换桌面()
 		Dim 所有图片 As String()
 		Try
-			所有图片 = Directory.GetFiles(Settings.所有桌面目录)
+			所有图片 = Directory.GetFiles(注册表图集目录.GetValue("桌面"))
 		Catch ex As ArgumentException
 			Throw New ArgumentException("桌面图集目录无效", ex.ParamName, ex.InnerException)
 		End Try
@@ -56,7 +62,7 @@ Module 自动换
 				Current.消息($"{监视器.路径名称} 设置桌面 {壁纸路径}")
 			End If
 		Next
-		Settings.上次桌面时间 = Now
+		注册表根.SetValue("上次桌面时间", Now)
 		RaiseEvent 自动换_桌面()
 	End Sub
 
@@ -67,7 +73,7 @@ Module 自动换
 	Async Function 换锁屏() As Task
 		Dim 所有图片 As String()
 		Try
-			所有图片 = Directory.GetFiles(Settings.所有锁屏目录)
+			所有图片 = Directory.GetFiles(注册表图集目录.GetValue("锁屏"))
 		Catch ex As ArgumentException
 			Throw New ArgumentException("锁屏图集目录无效", ex.ParamName, ex.InnerException)
 		End Try
@@ -75,7 +81,7 @@ Module 自动换
 		Process.Start(锁屏模式设置命令)
 		Await Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await Windows.Storage.StorageFile.GetFileFromPathAsync(壁纸路径))
 		Current.消息($"设置锁屏 {壁纸路径}")
-		Settings.上次锁屏时间 = Now
+		注册表根.SetValue("上次锁屏时间", Now)
 		RaiseEvent 自动换_锁屏()
 	End Function
 
