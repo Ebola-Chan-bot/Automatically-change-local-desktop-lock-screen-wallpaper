@@ -95,13 +95,21 @@ Class MainWindow
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
 		End If
-		Dim 锁屏历史 As String = 锁屏注册表.GetValue(Nothing)
-		If 锁屏历史 Is Nothing Then
+		Dim 锁屏历史路径 As String = 锁屏注册表.GetValue(Nothing)
+		If 锁屏历史路径 Is Nothing Then
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
 		End If
+
+		锁屏历史路径 = IO.Path.Combine(锁屏搜索目录, "LockScreen_" & 锁屏历史路径.Chars(0), "LockScreen.jpg")
+		If Not IO.File.Exists(锁屏历史路径) Then
+			'没有任何锁屏历史时，此路径可能是无效的
+			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
+			Exit Sub
+		End If
+
 		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
-		锁屏_当前图片.Source = New BitmapImage(New Uri(IO.Path.Combine(锁屏搜索目录, "LockScreen_" & 锁屏历史.Chars(0), "LockScreen.jpg")))
+		锁屏_当前图片.Source = New BitmapImage(New Uri(锁屏历史路径))
 	End Sub
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
