@@ -30,52 +30,52 @@ Class MainWindow
 	End Structure
 
 	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
-		Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
-		Dim 有效监视器 As New List(Of 桌面呈现结构)
-		Dim 缓存壁纸 As String()
-		For a As Byte = 0 To 监视器个数
-			Dim 新设备 As New 监视器设备(a)
-			If 新设备.有效 Then
-				Dim 呈现 As New 桌面呈现结构(新设备.路径名称)
-				Dim 路径字符串 As String = 新设备.壁纸路径
-				If 路径字符串 = "" Then
-					Continue For
-				End If
-				If Not IO.File.Exists(路径字符串) Then
-					If 缓存壁纸 Is Nothing Then
-						Dim Themes As String = IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft\Windows\Themes")
-						Dim CachedFiles As String = IO.Path.Combine(Themes, "CachedFiles")
-						If IO.Directory.Exists(CachedFiles) Then
-							缓存壁纸 = IO.Directory.GetFiles(CachedFiles)
-						Else
-							Select Case 桌面壁纸.位置
-								Case 桌面壁纸位置.填充, 桌面壁纸位置.适应, 桌面壁纸位置.拉伸
-									缓存壁纸 = IO.Directory.GetFiles(Themes, "Transcoded_*")
-								Case 桌面壁纸位置.平铺, 桌面壁纸位置.居中, 桌面壁纸位置.跨区
-									缓存壁纸 = IO.Directory.GetFiles(Themes, "TranscodedWallpaper")
-								Case Else
-									Continue For
-							End Select
-						End If
-					End If
-					路径字符串 = 缓存壁纸(If(缓存壁纸.Length > 1, a, 0))
-				End If
-				Dim 壁纸路径 As New Uri(路径字符串)
-				Try
-					呈现.壁纸图 = New BitmapImage(壁纸路径)
-				Catch ex As IO.IOException
-					呈现.壁纸图 = New BitmapImage
-					With 呈现.壁纸图
-						.BeginInit()
-						.CreateOptions = BitmapCreateOptions.IgnoreColorProfile
-						.UriSource = 壁纸路径
-						.EndInit()
-					End With
-				End Try
-				有效监视器.Add(呈现)
-			End If
-		Next
 		Try
+			Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
+			Dim 有效监视器 As New List(Of 桌面呈现结构)
+			Dim 缓存壁纸 As String()
+			For a As Byte = 0 To 监视器个数
+				Dim 新设备 As New 监视器设备(a)
+				If 新设备.有效 Then
+					Dim 呈现 As New 桌面呈现结构(新设备.路径名称)
+					Dim 路径字符串 As String = 新设备.壁纸路径
+					If 路径字符串 = "" Then
+						Continue For
+					End If
+					If Not IO.File.Exists(路径字符串) Then
+						If 缓存壁纸 Is Nothing Then
+							Dim Themes As String = IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft\Windows\Themes")
+							Dim CachedFiles As String = IO.Path.Combine(Themes, "CachedFiles")
+							If IO.Directory.Exists(CachedFiles) Then
+								缓存壁纸 = IO.Directory.GetFiles(CachedFiles)
+							Else
+								Select Case 桌面壁纸.位置
+									Case 桌面壁纸位置.填充, 桌面壁纸位置.适应, 桌面壁纸位置.拉伸
+										缓存壁纸 = IO.Directory.GetFiles(Themes, "Transcoded_*")
+									Case 桌面壁纸位置.平铺, 桌面壁纸位置.居中, 桌面壁纸位置.跨区
+										缓存壁纸 = IO.Directory.GetFiles(Themes, "TranscodedWallpaper")
+									Case Else
+										Continue For
+								End Select
+							End If
+						End If
+						路径字符串 = 缓存壁纸(If(缓存壁纸.Length > 1, a, 0))
+					End If
+					Dim 壁纸路径 As New Uri(路径字符串)
+					Try
+						呈现.壁纸图 = New BitmapImage(壁纸路径)
+					Catch ex As IO.IOException
+						呈现.壁纸图 = New BitmapImage
+						With 呈现.壁纸图
+							.BeginInit()
+							.CreateOptions = BitmapCreateOptions.IgnoreColorProfile
+							.UriSource = 壁纸路径
+							.EndInit()
+						End With
+					End Try
+					有效监视器.Add(呈现)
+				End If
+			Next
 			桌面壁纸列表.ItemsSource = 有效监视器
 		Catch ex As Exception
 			桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
