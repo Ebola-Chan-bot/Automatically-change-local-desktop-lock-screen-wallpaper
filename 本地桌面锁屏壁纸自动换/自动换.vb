@@ -41,7 +41,7 @@ Module 自动换
 	Friend ReadOnly 默认锁屏 As RegistryKey = 根目录.CreateSubKey("锁屏")
 	Friend ReadOnly 轮换周期转时间跨度 As TimeSpan() = {Timeout.InfiniteTimeSpan, FromMinutes(1), FromMinutes(2), FromMinutes(3), FromMinutes(5), FromMinutes(10), FromMinutes(15), FromMinutes(30), FromHours(1), FromHours(2), FromHours(3), FromHours(6), FromHours(12)}
 
-	ReadOnly 随机生成器 As New Random
+	Friend ReadOnly 随机生成器 As New Random
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
 	Friend Event 自动换_桌面()
 

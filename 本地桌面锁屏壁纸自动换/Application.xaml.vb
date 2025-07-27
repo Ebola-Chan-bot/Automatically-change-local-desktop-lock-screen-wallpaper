@@ -1,6 +1,8 @@
 ﻿Imports System.IO
 Imports System.IO.Pipes
+Imports System.Threading
 Imports System.Windows.Threading
+Imports Microsoft.Win32
 Imports Windows.ApplicationModel
 Imports Windows.Storage
 Imports Windows.Storage.Streams
@@ -56,11 +58,36 @@ Class Application
 		End Try
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
 	End Sub
+	Sub 唤醒()
 
+	End Sub
+	ReadOnly 下次唤醒 As New Timer(AddressOf 唤醒)
 	Private Sub 当前窗口_Closed(sender As Object, e As EventArgs) Handles 当前窗口.Closed
 		当前窗口 = Nothing
-		If (Settings.桌面轮换周期 = 轮换周期.禁用 OrElse Settings.桌面轮换周期 > 轮换周期.小时12) AndAlso (Settings.锁屏轮换周期 = 轮换周期.禁用 OrElse Settings.锁屏轮换周期 > 轮换周期.小时12) Then
-			Shutdown()
+		Dim 时间阈值 As Date = Now + TimeSpan.FromHours(12)
+		Dim 下次唤醒时间 As Date = 时间阈值
+		For Each 子键 As RegistryKey In (From 键名 As String In 注册表根.GetSubKeyNames Select 注册表根.OpenSubKey(键名))
+			Dim 本键轮换周期 As 轮换周期
+			Select Case 子键.GetValue("有效")
+				Case Nothing
+					本键轮换周期 = 子键.GetValue("轮换周期", 轮换周期.禁用)
+				Case True
+					本键轮换周期 = 子键.GetValue("轮换周期", 默认桌面.GetValue("轮换周期", 轮换周期.禁用))
+				Case False
+					Continue For
+			End Select
+			If 本键轮换周期 = 轮换周期.禁用 Then
+				Continue For
+			End If
+			Dim 下次更换时间 As Date = CDate(子键.GetValue("上次时间", Date.MinValue)) + 轮换周期转时间跨度(本键轮换周期)
+			If 下次唤醒时间 > 下次更换时间 Then
+				下次唤醒时间 = 下次更换时间
+			End If
+		Next
+		If 下次唤醒时间 < 时间阈值 Then
+			下次唤醒.Change(下次唤醒时间 - Now, Timeout.InfiniteTimeSpan)
+		Else
+
 		End If
 	End Sub
 

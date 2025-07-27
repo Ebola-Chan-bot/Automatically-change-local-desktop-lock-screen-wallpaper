@@ -5,7 +5,7 @@
 #include<vector>
 #pragma comment(lib,"shell32.lib")
 #pragma comment(lib,"ole32.lib")
-inline void COM异常检查(HRESULT 结果)
+inline static void COM异常检查(HRESULT 结果)
 {
 	if (FAILED(结果))
 		System::Runtime::InteropServices::Marshal::ThrowExceptionForHR(结果);
