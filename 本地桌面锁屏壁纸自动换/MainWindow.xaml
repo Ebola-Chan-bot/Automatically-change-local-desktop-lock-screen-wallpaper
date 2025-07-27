@@ -25,7 +25,8 @@
 					<ListView.ItemTemplate>
 						<DataTemplate>
 							<StackPanel x:Name="标尺">
-								<TextBlock Text="{Binding Path=监视器, Mode=OneWay}"/>
+								<TextBlock Text="{Binding Path=注册表.Name, Mode=OneWay}"/>
+								<TextBlock Text="{Binding Path=文件名, Mode=OneWay}"/>
 								<Image Source="{Binding Path=壁纸图, Mode=OneWay}" Stretch="Uniform" Width="{Binding ActualWidth, ElementName=标尺, Mode=OneWay}"/>
 								<Grid>
 									<Grid.ColumnDefinitions>
@@ -116,17 +117,19 @@
 		<GroupBox Header="锁屏" Grid.Column="1" Grid.Row="0">
 			<Grid>
 				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
 					<RowDefinition/>
 					<RowDefinition Height="Auto"/>
 					<RowDefinition Height="Auto"/>
 				</Grid.RowDefinitions>
-				<Image x:Name="锁屏_当前图片" Grid.Row="0"/>
-				<TextBlock x:Name="锁屏图片错误" Grid.Row="1">
+				<TextBlock x:Name="锁屏文件名" Grid.Row="0"/>
+				<Image x:Name="锁屏_当前图片" Grid.Row="1"/>
+				<TextBlock x:Name="锁屏图片错误" Grid.Row="2">
 					<TextBlock.Foreground>
 						<SolidColorBrush x:Name="锁屏_错误颜色" Color="Red"/>
 					</TextBlock.Foreground>
 				</TextBlock>
-				<Grid Grid.Row="2">
+				<Grid Grid.Row="3">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto"/>
 						<ColumnDefinition/>

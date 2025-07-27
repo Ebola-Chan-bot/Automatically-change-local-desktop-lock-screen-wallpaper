@@ -3,30 +3,39 @@ Imports 桌面壁纸取设
 Imports Windows.Storage
 Imports Microsoft.Win32
 Imports System.Security.Principal
+Imports System.ComponentModel
 
 Class MainWindow
 	Private Structure 桌面呈现结构
-		ReadOnly Property 监视器 As String
+		Implements INotifyPropertyChanged
+		ReadOnly 注册表 As RegistryKey
+		Sub New(监视器 As String)
+			注册表 = 注册表根.CreateSubKey(监视器)
+		End Sub
+		ReadOnly Property 文件名 As String
+			Get
+				Return If(注册表.GetValue("文件名"), "")
+			End Get
+		End Property
 		Property 壁纸图 As BitmapImage
 		Property 更换周期 As 轮换周期
 			Get
-				Return If(注册表更换周期.GetValue(监视器), 轮换周期.默认)
+				Return If(注册表.GetValue("更换周期"), 轮换周期.默认)
 			End Get
 			Set(value As 轮换周期)
-				注册表更换周期.SetValue(监视器, value)
+				注册表.SetValue("更换周期", value)
 			End Set
 		End Property
 		Property 图集目录 As String
 			Get
-				Return If(注册表图集目录.GetValue(监视器), "默认")
+				Return If(注册表.GetValue("图集目录"), "")
 			End Get
 			Set(value As String)
-				注册表图集目录.SetValue(监视器, value)
+				注册表.SetValue("图集目录", value)
 			End Set
 		End Property
-		Sub New(监视器 As String)
-			Me.监视器 = 监视器
-		End Sub
+
+		Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 	End Structure
 
 	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
@@ -110,6 +119,7 @@ Class MainWindow
 
 		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
 		锁屏_当前图片.Source = New BitmapImage(New Uri(锁屏历史路径))
+		锁屏文件名.Text = If(默认锁屏.GetValue("文件名"), "")
 	End Sub
 
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
@@ -122,10 +132,11 @@ Class MainWindow
 		' 在 InitializeComponent() 调用之后添加任何初始化。
 		更新当前桌面()
 		更新当前锁屏()
-		桌面_更换周期.SelectedIndex = If(注册表更换周期.GetValue("桌面"), 轮换周期.禁用)
-		锁屏_更换周期.SelectedIndex = If(注册表更换周期.GetValue("锁屏"), 轮换周期.禁用)
-		桌面_图集目录.Text = If(注册表图集目录.GetValue("桌面"), "")
-		锁屏_图集目录.Text = If(注册表图集目录.GetValue("锁屏"), "")
+		桌面_更换周期.SelectedIndex = If(默认桌面.GetValue("更换周期"), 轮换周期.禁用)
+		锁屏_更换周期.SelectedIndex = If(默认锁屏.GetValue("更换周期"), 轮换周期.禁用)
+		桌面_图集目录.Text = If(默认桌面.GetValue("图集目录"), "")
+		锁屏_图集目录.Text = If(默认锁屏.GetValue("图集目录"), "")
+		锁屏文件名.Text = If(默认锁屏.GetValue("文件名"), "")
 		Current.当前窗口 = Me
 		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
 		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
@@ -136,7 +147,7 @@ Class MainWindow
 	Private Async Sub 桌面_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
 		If 目录 IsNot Nothing Then
-			注册表图集目录.SetValue("桌面", 目录.Path)
+			默认桌面.SetValue("图集目录", 目录.Path)
 			桌面_图集目录.Text = 目录.Path
 		End If
 	End Sub
@@ -144,7 +155,7 @@ Class MainWindow
 	Private Async Sub 锁屏_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_浏览图集.Click
 		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
 		If 目录 IsNot Nothing Then
-			注册表图集目录.SetValue("锁屏", 目录.Path)
+			默认锁屏.SetValue("图集目录", 目录.Path)
 			锁屏_图集目录.Text = 目录.Path
 		End If
 	End Sub
@@ -166,14 +177,14 @@ Class MainWindow
 	End Sub
 
 	Private Sub 桌面_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		注册表更换周期.SetValue("桌面", 桌面_更换周期.SelectedIndex)
-		更换周期("桌面", (桌面_更换周期.SelectedIndex, 锁屏_更换周期.SelectedIndex), 桌面定时器, 注册表根.GetValue("上次桌面时间"))
+		默认桌面.SetValue("更换周期", 桌面_更换周期.SelectedIndex)
+		更换周期("桌面", (桌面_更换周期.SelectedIndex, 锁屏_更换周期.SelectedIndex), 桌面定时器, If(默认桌面.GetValue("上次时间"), Date.MinValue))
 		Current.消息($"桌面周期设置 {桌面_更换周期.SelectedValue}")
 	End Sub
 
 	Private Sub 锁屏_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
-		注册表更换周期.SetValue("锁屏", 锁屏_更换周期.SelectedIndex)
-		更换周期("锁屏", (锁屏_更换周期.SelectedIndex, 桌面_更换周期.SelectedIndex), 锁屏定时器, Settings.上次锁屏时间)
+		默认锁屏.SetValue("更换周期", 锁屏_更换周期.SelectedIndex)
+		更换周期("锁屏", (锁屏_更换周期.SelectedIndex, 桌面_更换周期.SelectedIndex), 锁屏定时器, If(默认锁屏.GetValue("上次时间"), Date.MinValue))
 		Current.消息($"锁屏周期设置 {锁屏_更换周期.SelectedValue}")
 	End Sub
 
@@ -189,9 +200,5 @@ Class MainWindow
 		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
 		winrt.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
 		目录浏览对话框.FileTypeFilter.Add("*")
-	End Sub
-
-	Private Sub MainWindow_Closing(sender As Object, e As ComponentModel.CancelEventArgs) Handles Me.Closing
-		Settings.Save()
 	End Sub
 End Class
