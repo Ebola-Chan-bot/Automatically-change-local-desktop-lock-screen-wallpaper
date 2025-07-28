@@ -25,7 +25,7 @@
 					<ListView.ItemTemplate>
 						<DataTemplate>
 							<StackPanel x:Name="标尺">
-								<TextBlock Text="{Binding Path=注册表.Name, Mode=OneWay}"/>
+								<TextBlock Text="{Binding Path=注册表键.Name, Mode=OneWay}"/>
 								<TextBlock Text="{Binding Path=文件名, Mode=OneWay}"/>
 								<TextBlock Grid.Row="1" Text="{Binding Path=错误消息, Mode=OneWay}">
 									<TextBlock.Foreground>

@@ -27,10 +27,11 @@ namespace 桌面壁纸取设 {
 	};
 	public ref class 监视器设备
 	{
-		const wchar_t* 监视器ID;
+		LPWSTR 监视器ID;
 	public:
 		//获取系统的监视器之一。构造后应当检查监视器是否有效。
 		监视器设备(uint8_t 监视器索引);
+		监视器设备(System::String^ 监视器ID);
 		~监视器设备();
 		//与系统关联的监视器数。
 		static uint8_t 监视器设备计数();

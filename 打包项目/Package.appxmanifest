@@ -46,7 +46,7 @@
 				  Category="windows.startupTask"
 				  Executable="桌面锁屏自动换\桌面锁屏自动换.exe"
 				  EntryPoint="Windows.FullTrustApplication"
-				  uap10:Parameters="自启动">
+				  uap10:Parameters="后台启动">
 					<uap5:StartupTask
 					  TaskId="自启动任务"
 					  Enabled="false"

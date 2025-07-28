@@ -20,13 +20,17 @@ namespace 桌面壁纸取设
 {
 	监视器设备::监视器设备(uint8_t 监视器索引)
 	{
-		LPWSTR 返回值;
-		COM异常检查(接口->GetMonitorDevicePathAt(监视器索引, &返回值));
-		监视器ID = 返回值;
+		LPWSTR 本地监视器ID;
+		COM异常检查(接口->GetMonitorDevicePathAt(监视器索引, &本地监视器ID));
+		监视器ID = 本地监视器ID;
+	}
+	监视器设备::监视器设备(System::String^ ID)
+	{
+		监视器ID = reinterpret_cast<LPWSTR>(System::Runtime::InteropServices::Marshal::StringToCoTaskMemUni(ID).ToPointer());
 	}
 	监视器设备::~监视器设备()
 	{
-		CoTaskMemFree((LPVOID)监视器ID);
+		CoTaskMemFree(监视器ID);
 	}
 	uint8_t 监视器设备::监视器设备计数()
 	{
