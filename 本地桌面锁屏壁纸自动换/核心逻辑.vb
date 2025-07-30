@@ -6,7 +6,6 @@ Imports Microsoft.Win32.TaskScheduler
 Imports Windows.ApplicationModel
 Imports Windows.Storage
 Imports 桌面壁纸取设
-
 Enum 轮换周期 As Byte
 	禁用
 	分钟1
@@ -29,7 +28,19 @@ Enum 轮换周期 As Byte
 	月1
 	默认
 End Enum
-
+Class 监视器异常
+	Inherits Exception
+	ReadOnly 监视器ID As String
+	ReadOnly 异常值 As String
+	Sub New(消息 As String, 监视器ID As String, Optional 异常值 As String = Nothing, Optional 内部异常 As Exception = Nothing)
+		MyBase.New(消息, 内部异常)
+		Me.监视器ID = 监视器ID
+		Me.异常值 = 异常值
+	End Sub
+	Public Overrides Function ToString() As String
+		Return $"{Message} {监视器ID} {异常值}"
+	End Function
+End Class
 Module 核心逻辑
 	Friend 日志文件 As StorageFile
 	Friend 日志路径 As String
@@ -53,30 +64,42 @@ Module 核心逻辑
 	Friend ReadOnly 随机生成器 As New Random
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
 	Friend Event 自动换_桌面()
-	Function 更换单个监视器的桌面(注册表键 As RegistryKey) As String
+	Function 更换单个监视器的桌面(注册表键 As RegistryKey， ByRef 默认图集 As String(), 监视器 As 监视器设备) As String
 		Dim 所有图片 As String()
-		Dim 图集目录 As String = If(注册表键.GetValue("图集目录"), 注册表根.GetValue("图集目录"))
-		注册表键.SetValue("上次时间", Now)
-		Try
-			所有图片 = Directory.GetFiles(图集目录)
-		Catch ex As ArgumentException
-			Throw New ArgumentException("图集目录无效", ex.ParamName, ex.InnerException)
-		End Try
-		If Not 所有图片.Length Then
-			Throw New ArgumentException("图集目录内没有图片")
+		Dim 图集目录 As String = 注册表键.GetValue("图集目录")
+		Dim 监视器ID = 监视器.路径名称
+		If IsNothing(图集目录) Then
+			If 默认图集 Is Nothing Then
+				Dim 默认图集目录 As String = 默认桌面.GetValue("图集目录")
+				Try
+					默认图集 = Directory.GetFiles(默认图集目录)
+				Catch ex As ArgumentException
+					Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录, ex)
+				End Try
+			End If
+			所有图片 = 默认图集
+		Else
+			Try
+				所有图片 = Directory.GetFiles(图集目录)
+			Catch ex As ArgumentException
+				Throw New 监视器异常("图集目录无效", 监视器ID, 图集目录, ex)
+			End Try
 		End If
-		Dim 监视器 As New 监视器设备(注册表键.Name)
+		If Not 所有图片.Length Then
+			Throw New 监视器异常("图集目录没有图片", 监视器ID, 图集目录)
+		End If
 		If 监视器.有效 Then
 			Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
 			监视器.壁纸路径 = 壁纸路径
-			消息($"{注册表键.Name} 设置桌面 {壁纸路径}")
+			消息($"{监视器ID} 设置桌面 {壁纸路径}")
 			Return 壁纸路径
 		Else
 			注册表键.SetValue("有效", False)
 			Return Nothing
 		End If
+		注册表键.SetValue("上次时间", Now)
 	End Function
-	ReadOnly 锁屏模式设置命令 As New ProcessStartInfo With {.FileName = "powershell.exe", .Arguments = "[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager',$true).SetValue('RotatingLockScreenEnabled', 0)", .CreateNoWindow = True}
+	ReadOnly 锁屏模式设置命令 As New ProcessStartInfo With {.FileName = "powershell.exe", .Arguments = "[Microsoft.Win32.Registry]:: CurrentUser.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager',$true).SetValue('RotatingLockScreenEnabled', 0)", .CreateNoWindow = True}
 	Friend Event 自动换_锁屏(ex As Exception)
 
 	'必须返回Task才能捕获异常。立即换锁屏并设置上次时间。
@@ -96,8 +119,8 @@ Module 核心逻辑
 			Process.Start(锁屏模式设置命令)
 			Call Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await StorageFile.GetFileFromPathAsync(壁纸路径))
 			消息($"设置锁屏 {壁纸路径}")
-			默认锁屏.SetValue("上次时间", Now)
 			默认锁屏.SetValue("文件名", Path.GetFileName(壁纸路径))
+			默认锁屏.SetValue("上次时间", Now)
 		Catch ex As Exception
 			报错(ex)
 			RaiseEvent 自动换_锁屏(ex)
@@ -105,42 +128,45 @@ Module 核心逻辑
 		RaiseEvent 自动换_锁屏(Nothing)
 	End Sub
 	Function 检查更换() As TimeSpan
-		检查更换 = Timeout.InfiniteTimeSpan
+		检查更换 = MaxValue '不能用Timeout.InfiniteTimeSpan，因为该值是-1，不大于正常的TimeSpan值。
+		Dim 本键轮换周期 As 轮换周期 = 默认锁屏.GetValue("更换周期", 轮换周期.禁用)
 		Dim 现在 As Date = Now
+		If 本键轮换周期 <> 轮换周期.禁用 Then
+			Dim 上次时间 As Date = 默认锁屏.GetValue("上次时间", Date.MinValue)
+			Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, 上次时间.AddMonths(1), 上次时间 + 轮换周期转时间跨度(本键轮换周期)) - 现在
+			If 下次更换时间 < FromMinutes(1) Then
+				换锁屏()
+				下次更换时间 = If(本键轮换周期 = 轮换周期.月1, 现在.AddMonths(1) - 现在, 轮换周期转时间跨度(本键轮换周期))
+			End If
+			检查更换 = 下次更换时间
+		End If
 		Dim 桌面换了 As Boolean = False
-		For Each 键名 As String In 注册表根.GetSubKeyNames
-			If 键名 = "桌面" Then Continue For
-			Dim 本键轮换周期 As 轮换周期
-			Dim 子键 As RegistryKey = 注册表根.OpenSubKey(键名)
-			Select Case 子键.GetValue("有效")
-				Case Nothing
-					本键轮换周期 = 子键.GetValue("轮换周期", 轮换周期.禁用)
-				Case True
-					本键轮换周期 = 子键.GetValue("轮换周期", 默认桌面.GetValue("轮换周期", 轮换周期.禁用))
-				Case False
-					Continue For
-			End Select
+		For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
+			Dim 监视器 As New 监视器设备(M)
+			If Not 监视器.有效 Then
+				Continue For
+			End If
+			Dim 键名 As String = Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器.路径名称)).Replace("/"c, "-"c)
+			Dim 子键 As RegistryKey = 注册表根.CreateSubKey(键名)
+			本键轮换周期 = 子键.GetValue("更换周期", 默认桌面.GetValue("更换周期", 轮换周期.禁用))
 			If 本键轮换周期 = 轮换周期.禁用 Then
 				Continue For
 			End If
 			Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, CDate(子键.GetValue("上次时间", Date.MinValue)).AddMonths(1), CDate(子键.GetValue("上次时间", Date.MinValue)) + 轮换周期转时间跨度(本键轮换周期)) - 现在
 			If 下次更换时间 < FromMinutes(1) Then
-				If 键名 = "锁屏" Then
-					换锁屏()
-				Else
-					Dim 壁纸路径 As String
-					Try
-						壁纸路径 = 更换单个监视器的桌面(子键)
-						If 壁纸路径 Is Nothing Then
-							Continue For
-						End If
-						子键.SetValue("文件名", Path.GetFileName(壁纸路径))
-						桌面换了 = True
-					Catch ex As Exception
-						报错(ex)
-					End Try
-				End If
-				下次更换时间 = If(本键轮换周期 = 轮换周期.月1, CDate(子键.GetValue("上次时间", Date.MinValue)).AddMonths(1), CDate(子键.GetValue("上次时间", Date.MinValue)) + 轮换周期转时间跨度(本键轮换周期)) - 现在
+				Dim 壁纸路径 As String
+				Try
+					壁纸路径 = 更换单个监视器的桌面(子键)
+					If 壁纸路径 Is Nothing Then
+						Continue For
+					End If
+					子键.SetValue("文件名", Path.GetFileName(壁纸路径))
+					桌面换了 = True
+				Catch ex As Exception
+					报错(ex)
+				End Try
+				Dim 上次时间 As Date = 子键.GetValue("上次时间", Date.MinValue)
+				下次更换时间 = If(本键轮换周期 = 轮换周期.月1, 上次时间.AddMonths(1), 上次时间 + 轮换周期转时间跨度(本键轮换周期)) - 现在
 			End If
 			If 检查更换 > 下次更换时间 Then
 				检查更换 = 下次更换时间

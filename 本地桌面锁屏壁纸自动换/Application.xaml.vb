@@ -44,8 +44,6 @@ Class Application
 		If Command() = "后台启动" Then
 			保留或关闭(检查更换)
 		Else
-			'此方法不在MainWindow中调用，因为MainWindow也可能是在程序从后台状态切换到前台时创建，此时检查更换是不必要的，因为有计时器一直在工作。
-			检查更换设置唤醒()
 			Call (New MainWindow).Show()
 		End If
 	End Sub
