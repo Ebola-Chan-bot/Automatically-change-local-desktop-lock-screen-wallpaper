@@ -11,7 +11,7 @@
 	<Identity
 	  Name="4264644686220.6993758F38F5"
 	  Publisher="CN=FD9B4583-309F-46EC-ADA4-1CA4EDCA1A3A"
-	  Version="1.0.5.0" />
+	  Version="1.1.0.0" />
 
 	<Properties>
 		<DisplayName>桌面锁屏自动换</DisplayName>

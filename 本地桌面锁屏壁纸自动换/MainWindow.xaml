@@ -4,7 +4,7 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:local="clr-namespace:本地桌面锁屏壁纸自动换"
-		mc:Ignorable="d" Title="本地桌面锁屏壁纸自动换" Icon="/图标.jpg">
+		mc:Ignorable="d" Title="本地桌面锁屏壁纸自动换" Icon="/图标.jpeg">
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition/>
@@ -27,7 +27,7 @@
 							<StackPanel x:Name="标尺">
 								<TextBlock Text="{Binding Path=监视器ID}"/>
 								<TextBlock Text="{Binding Path=文件名, Mode=OneWay}"/>
-								<TextBlock Grid.Row="1" Text="{Binding Path=错误消息, Mode=OneWay}">
+								<TextBlock Grid.Row="1" Text="{Binding Path=错误消息, Mode=OneWay}" TextWrapping="Wrap">
 									<TextBlock.Foreground>
 										<SolidColorBrush Color="Red"/>
 									</TextBlock.Foreground>
@@ -75,7 +75,7 @@
 						</DataTemplate>
 					</ListView.ItemTemplate>
 				</ListView>
-				<TextBlock x:Name="桌面图片错误" Grid.Row="1">
+				<TextBlock x:Name="桌面图片错误" Grid.Row="1" TextWrapping="Wrap">
 					<TextBlock.Foreground>
 						<SolidColorBrush Color="Red"/>
 					</TextBlock.Foreground>
@@ -129,7 +129,7 @@
 				</Grid.RowDefinitions>
 				<TextBlock x:Name="锁屏文件名" Grid.Row="0"/>
 				<Image x:Name="锁屏_当前图片" Grid.Row="1"/>
-				<TextBlock x:Name="锁屏图片错误" Grid.Row="2">
+				<TextBlock x:Name="锁屏图片错误" Grid.Row="2" TextWrapping="Wrap">
 					<TextBlock.Foreground>
 						<SolidColorBrush x:Name="锁屏_错误颜色" Color="Red"/>
 					</TextBlock.Foreground>

@@ -22,7 +22,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="TaskScheduler" Version="2.11.0" />
+		<PackageReference Include="TaskScheduler" Version="2.12.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -30,7 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Resource Include="图标.jpg" />
+		<Resource Include="图标.jpeg" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -10,12 +10,12 @@ inline static void COM异常检查(HRESULT 结果)
 	if (FAILED(结果))
 		System::Runtime::InteropServices::Marshal::ThrowExceptionForHR(结果);
 }
-IDesktopWallpaper* const 接口 = []()
-{
-	IDesktopWallpaper* 返回值;
-	COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&返回值));
-	return 返回值;
-}();
+static IDesktopWallpaper* const 接口 = []()
+	{
+		IDesktopWallpaper* 返回值;
+		COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&返回值));
+		return 返回值;
+	}();
 namespace 桌面壁纸取设
 {
 	监视器设备::监视器设备(uint8_t 监视器索引)

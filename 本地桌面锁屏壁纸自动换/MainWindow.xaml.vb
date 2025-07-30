@@ -32,14 +32,39 @@ Class MainWindow
 		End Sub
 		Public Sub Execute(parameter As Object) Implements ICommand.Execute
 			Try
-				Dim 壁纸路径 As String = 更换单个监视器的桌面(父.注册表键)
-				If 壁纸路径 Is Nothing Then
-					DirectCast(父.主窗口.桌面壁纸列表.ItemsSource, List(Of 桌面呈现结构)).Remove(父)
+				Dim 所有图片 As String()
+				Dim 图集目录 As String = 父.注册表键.GetValue("图集目录")
+				Dim 监视器ID = 父.监视器ID
+				If IsNothing(图集目录) Then
+					Dim 默认图集目录 As String = 默认桌面.GetValue("图集目录")
+					Try
+						所有图片 = Directory.GetFiles(默认图集目录)
+					Catch ex As ArgumentException
+						Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录, ex)
+					End Try
 				Else
+					Try
+						所有图片 = Directory.GetFiles(图集目录)
+					Catch ex As ArgumentException
+						Throw New 监视器异常("图集目录无效", 监视器ID, 图集目录, ex)
+					End Try
+				End If
+				If 所有图片.Length = 0 Then
+					Throw New 监视器异常("图集目录没有图片", 监视器ID, 图集目录)
+				End If
+				Dim 监视器 As New 监视器设备(父.监视器ID)
+				If 监视器.有效 Then
+					Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
+					监视器.壁纸路径 = 壁纸路径
+					消息($"{监视器ID} 设置桌面 {壁纸路径}")
+					父.注册表键.SetValue("上次时间", Now)
 					父.壁纸图 = 载入位图(壁纸路径)
 					父.文件名 = Path.GetFileName(壁纸路径)
+					父.错误消息 = ""
+				Else
+					父.注册表键.SetValue("有效", False)
+					DirectCast(父.主窗口.桌面壁纸列表.ItemsSource, List(Of 桌面呈现结构)).Remove(父)
 				End If
-				父.错误消息 = ""
 			Catch ex As Exception
 				父.错误消息 = 报错(ex)
 			End Try
@@ -71,12 +96,9 @@ Class MainWindow
 			注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器)).Replace("/"c, "-"c))
 			Me.主窗口 = 主窗口
 			注册表键.SetValue("有效", True)
+			监视器ID = 监视器
 		End Sub
 		ReadOnly Property 监视器ID As String
-			Get
-				Return Text.Encoding.Unicode.GetString(Convert.FromBase64String(Path.GetFileName(注册表键.Name).Replace("-"c, "/"c)))
-			End Get
-		End Property
 		Property 文件名 As String
 			Get
 				Return 注册表键.GetValue("文件名")
@@ -137,7 +159,8 @@ Class MainWindow
 		Sub New(新设备 As 监视器设备, ByRef 缓存壁纸 As String(), 主窗口 As MainWindow, 监视器索引 As Byte)
 			Me.主窗口 = 主窗口
 			Dim 路径字符串 As String = 新设备.壁纸路径
-			注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(新设备.路径名称)).Replace("/"c, "-"c))
+			监视器ID = 新设备.路径名称
+			注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器ID)).Replace("/"c, "-"c))
 			文件名 = Path.GetFileName(路径字符串)
 			If Not File.Exists(路径字符串) Then
 				If 缓存壁纸 Is Nothing Then
@@ -157,6 +180,8 @@ Class MainWindow
 				路径字符串 = 缓存壁纸(If(缓存壁纸.Length > 1, 监视器索引, 0))
 			End If
 			壁纸图 = 载入位图(路径字符串)
+
+			'必须放在最后设置，因为前面有可能出错退出
 			注册表键.SetValue("有效", True)
 		End Sub
 	End Class
@@ -178,18 +203,18 @@ Class MainWindow
 			Next
 			桌面壁纸列表.ItemsSource = 有效监视器
 		Catch ex As Exception
-			桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
+			桌面图片错误.Text = 报错(ex)
 		End Try
 	End Sub
 	Private Sub 更新当前锁屏() Handles 锁屏_当前图片.MouseLeftButtonUp
 		锁屏未加载 = False
 		Static 用户SID As String = WindowsIdentity.GetCurrent.User.Value
-		Static 锁屏搜索目录 As String = IO.Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
-		If Not IO.Directory.Exists(锁屏搜索目录) Then
+		Static 锁屏搜索目录 As String = Path.Combine(Environment.GetEnvironmentVariable("ProgramData"), "Microsoft\Windows\SystemData", 用户SID, "ReadOnly")
+		If Not Directory.Exists(锁屏搜索目录) Then
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
 			Exit Sub
 		End If
-		Static 锁屏注册表路径 As String = IO.Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
+		Static 锁屏注册表路径 As String = Path.Combine("SOFTWARE\Microsoft\Windows\CurrentVersion\SystemProtectedUserData", 用户SID, "AnyoneRead\LockScreen")
 		Dim 锁屏注册表 As RegistryKey = Registry.LocalMachine.OpenSubKey(锁屏注册表路径)
 		If 锁屏注册表 Is Nothing Then
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
@@ -201,7 +226,7 @@ Class MainWindow
 			Exit Sub
 		End If
 
-		锁屏历史路径 = IO.Path.Combine(锁屏搜索目录, "LockScreen_" & 锁屏历史路径.Chars(0), "LockScreen.jpg")
+		锁屏历史路径 = Path.Combine(锁屏搜索目录, "LockScreen_" & 锁屏历史路径.Chars(0), "LockScreen.jpg")
 		If Not File.Exists(锁屏历史路径) Then
 			'没有任何锁屏历史时，此路径可能是无效的
 			锁屏图片错误.Text = "用户当前未设置任何个性化锁屏"
@@ -212,11 +237,10 @@ Class MainWindow
 		锁屏_当前图片.Source = New BitmapImage(New Uri(锁屏历史路径))
 		锁屏文件名.Text = 默认锁屏.GetValue("文件名")
 	End Sub
-	Private Sub 自动换锁屏事件(ex As Exception)
-		If ex Is Nothing Then
+	Private Sub 自动换锁屏事件(异常消息 As String)
+		锁屏图片错误.Text = 异常消息
+		If 异常消息 Is Nothing Then
 			更新当前锁屏()
-		Else
-			锁屏图片错误.Text = $"{Now} {ex.GetType} {ex.Message}"
 		End If
 	End Sub
 	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
@@ -238,12 +262,9 @@ Class MainWindow
 		Try
 			Dim 所有桌面 As New List(Of 桌面呈现结构)
 			Dim 默认图集 As String() = Nothing
-			Dim 默认图集目录 = 默认桌面.GetValue("图集目录")
-			Try
-				默认图集 = Directory.GetFiles(默认图集目录)
-			Catch ex As ArgumentException
-			End Try
 			Dim 缓存壁纸 As String() = Nothing
+			Dim 无默认图集 As Boolean = False
+			Dim 默认图集目录 As String = Nothing
 			For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
 				Try
 					Dim 监视器 As New 监视器设备(M)
@@ -254,12 +275,32 @@ Class MainWindow
 							Dim 图集目录 As String = 桌面.注册表键.GetValue("图集目录")
 							Dim 所有图片 As String()
 							If 图集目录 Is Nothing Then
+								If 无默认图集 Then
+									Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录)
+								End If
+								If 默认图集 Is Nothing Then
+									默认图集目录 = 默认桌面.GetValue("图集目录")
+									Try
+										默认图集 = Directory.GetFiles(默认图集目录)
+									Catch ex As ArgumentException
+										无默认图集 = True
+										Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录, ex)
+									End Try
+								End If
 								所有图片 = 默认图集
 								If 所有图片 Is Nothing Then
-									Throw New NullReferenceException($"图集目录无效 {默认图集目录}")
+									无默认图集 = True
+									Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录)
 								End If
 							Else
-								所有图片 = Directory.GetFiles(图集目录)
+								Try
+									所有图片 = Directory.GetFiles(图集目录)
+								Catch ex As ArgumentException
+									Throw New 监视器异常("图集目录无效", 监视器ID, 图集目录, ex)
+								End Try
+							End If
+							If 所有图片.Length = 0 Then
+								Throw New 监视器异常("图集目录没有图片", 监视器ID, 图集目录)
 							End If
 							Dim 选定图片 As String = 所有图片(随机生成器.Next(所有图片.Length))
 							监视器.壁纸路径 = 选定图片
@@ -270,9 +311,8 @@ Class MainWindow
 						Catch ex As Exception
 							Try
 								桌面 = New 桌面呈现结构(监视器, 缓存壁纸, Me, M) With {
-								.错误消息 = $"{ex.GetType} {ex.Message}"
+								.错误消息 = 报错(ex)
 							}
-								报错(ex)
 							Catch 无效监视器 As Exception
 								Continue For
 							End Try
@@ -280,14 +320,12 @@ Class MainWindow
 						所有桌面.Add(桌面)
 					End If
 				Catch ex As Exception
-					报错(ex)
-					桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
+					桌面图片错误.Text = 报错(ex)
 				End Try
 			Next
 			桌面壁纸列表.ItemsSource = 所有桌面
 		Catch ex As Exception
-			桌面图片错误.Text = $"{ex.GetType} {ex.Message}"
-			报错(ex)
+			桌面图片错误.Text = 报错(ex)
 		End Try
 	End Sub
 
@@ -357,27 +395,30 @@ Class MainWindow
 
 		当前窗口 = Nothing
 
-		'只检查下次唤醒时间，认为不会需要更新，因为之前计时器一直在工作，把所需的更新都解决掉了
-		Dim 下次唤醒时间 As TimeSpan = Timeout.InfiniteTimeSpan
+		'只检查下次唤醒时间，认为不会需要更新，因为窗口New中已经检查过了
+		Dim 下次唤醒时间 As TimeSpan = TimeSpan.MaxValue
 		Dim 现在 As Date = Now
+		Dim 默认周期 As 轮换周期 = 默认桌面.GetValue("更换周期", 轮换周期.禁用)
 		For Each 键名 As String In 注册表根.GetSubKeyNames
 			If 键名 = "桌面" Then
 				Continue For
 			End If
 			Dim 子键 As RegistryKey = 注册表根.OpenSubKey(键名)
-			Dim 本键轮换周期 As 轮换周期 = If(键名 = "锁屏", 子键.GetValue("更换周期", 轮换周期.禁用), If(True.Equals(子键.GetValue("有效")), 子键.GetValue("更换周期", 默认桌面.GetValue("更换周期", 轮换周期.禁用)), 默认桌面.GetValue("更换周期", 轮换周期.禁用)))
+			Dim 本键轮换周期 As 轮换周期 = If(键名 = "锁屏", 子键.GetValue("更换周期", 轮换周期.禁用), If(True.Equals(子键.GetValue("有效")), 子键.GetValue("更换周期", 默认周期), 默认周期))
+
+			'这两个If不能改用 Select Case，因为默认周期也可能是禁用，那之后仍然应该 Continue For。
+			If 本键轮换周期 = 轮换周期.默认 Then
+				本键轮换周期 = 默认周期
+			End If
 			If 本键轮换周期 = 轮换周期.禁用 Then
 				Continue For
 			End If
+
 			Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, CDate(子键.GetValue("上次时间", Date.MinValue)).AddMonths(1), CDate(子键.GetValue("上次时间", Date.MinValue)) + 轮换周期转时间跨度(本键轮换周期)) - 现在
 			If 下次唤醒时间 > 下次更换时间 Then
 				下次唤醒时间 = 下次更换时间
 			End If
-			If 下次唤醒时间 < TimeSpan.FromMinutes(1) Then
-				下次唤醒时间 = TimeSpan.FromMinutes(1)
-				Exit For
-			End If
 		Next
-		保留或关闭(下次唤醒时间)
+		保留或关闭(If(下次唤醒时间 = TimeSpan.MaxValue, Timeout.InfiniteTimeSpan, 下次唤醒时间))
 	End Sub
 End Class
