@@ -394,31 +394,6 @@ Class MainWindow
 		RemoveHandler 锁屏_立即更换.Click, DirectCast(AddressOf 换锁屏, RoutedEventHandler)
 
 		当前窗口 = Nothing
-
-		'只检查下次唤醒时间，认为不会需要更新，因为窗口New中已经检查过了
-		Dim 下次唤醒时间 As TimeSpan = TimeSpan.MaxValue
-		Dim 现在 As Date = Now
-		Dim 默认周期 As 轮换周期 = 默认桌面.GetValue("更换周期", 轮换周期.禁用)
-		For Each 键名 As String In 注册表根.GetSubKeyNames
-			If 键名 = "桌面" Then
-				Continue For
-			End If
-			Dim 子键 As RegistryKey = 注册表根.OpenSubKey(键名)
-			Dim 本键轮换周期 As 轮换周期 = If(键名 = "锁屏", 子键.GetValue("更换周期", 轮换周期.禁用), If(True.Equals(子键.GetValue("有效")), 子键.GetValue("更换周期", 默认周期), 默认周期))
-
-			'这两个If不能改用 Select Case，因为默认周期也可能是禁用，那之后仍然应该 Continue For。
-			If 本键轮换周期 = 轮换周期.默认 Then
-				本键轮换周期 = 默认周期
-			End If
-			If 本键轮换周期 = 轮换周期.禁用 Then
-				Continue For
-			End If
-
-			Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, CDate(子键.GetValue("上次时间", Date.MinValue)).AddMonths(1), CDate(子键.GetValue("上次时间", Date.MinValue)) + 轮换周期转时间跨度(本键轮换周期)) - 现在
-			If 下次唤醒时间 > 下次更换时间 Then
-				下次唤醒时间 = 下次更换时间
-			End If
-		Next
-		保留或关闭(If(下次唤醒时间 = TimeSpan.MaxValue, Timeout.InfiniteTimeSpan, 下次唤醒时间))
+		保留或关闭()
 	End Sub
 End Class

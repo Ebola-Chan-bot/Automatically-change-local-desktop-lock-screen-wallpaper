@@ -169,7 +169,8 @@ Module 核心逻辑
 		End If
 	End Function
 	Friend 开机启动 As StartupTask
-	Sub 保留或关闭(下次唤醒间隔 As TimeSpan)
+	Sub 保留或关闭()
+		Dim 下次唤醒间隔 As TimeSpan = 检查更换()
 		Static 任务服务 As TaskService = TaskService.Instance
 		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
 		Dim 任务名称 As String = "本地桌面锁屏自动换"
@@ -210,7 +211,7 @@ Module 核心逻辑
 	'调用的COM接口不支持多线程，必须在原来线程上调度
 	Friend ReadOnly 下次唤醒 As New Timer(Sub() Current.Dispatcher.Invoke(Sub()
 																		  If 当前窗口 Is Nothing Then
-																			  保留或关闭(检查更换)
+																			  保留或关闭()
 																		  Else
 																			  检查更换设置唤醒()
 																		  End If

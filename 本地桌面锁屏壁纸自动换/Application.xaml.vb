@@ -42,7 +42,7 @@ Class Application
 		日志流 = New StreamWriter(随机访问流.AsStreamForWrite) With {.AutoFlush = True}
 		开机启动 = Await StartupTask.GetAsync("自启动任务")
 		If Command() = "后台启动" Then
-			保留或关闭(检查更换)
+			保留或关闭()
 		Else
 			Call (New MainWindow).Show()
 		End If
