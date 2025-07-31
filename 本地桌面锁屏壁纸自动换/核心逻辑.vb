@@ -57,8 +57,8 @@ Module 核心逻辑
 	Friend ReadOnly 随机生成器 As New Random
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
 	Friend Event 自动换_桌面()
-	ReadOnly 锁屏模式设置命令 As New ProcessStartInfo With {.FileName = "powershell.exe", .Arguments = "[Microsoft.Win32.Registry]:: CurrentUser.OpenSubKey('SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager',$true).SetValue('RotatingLockScreenEnabled', 0)", .CreateNoWindow = True}
 	Friend Event 自动换_锁屏(异常消息 As String)
+	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
 
 	'必须返回Task才能捕获异常。立即换锁屏并设置上次时间。
 	Async Sub 换锁屏()
@@ -74,7 +74,7 @@ Module 核心逻辑
 				Throw New 监视器异常("图集目录没有图片", "锁屏", 图集目录)
 			End If
 			Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
-			Process.Start(锁屏模式设置命令)
+			ContentDeliveryManager.SetValue("RotatingLockScreenEnabled", 0, RegistryValueKind.DWord)
 
 			'必须等待，否则不会及时更改界面中的锁屏壁纸
 			Await Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await StorageFile.GetFileFromPathAsync(壁纸路径))

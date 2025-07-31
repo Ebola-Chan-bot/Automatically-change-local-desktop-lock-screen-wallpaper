@@ -6,7 +6,7 @@
 		<RootNamespace>本地桌面锁屏壁纸自动换</RootNamespace>
 		<UseWPF>true</UseWPF>
 		<Platforms>x64</Platforms>
-		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion>10.0.20348.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
