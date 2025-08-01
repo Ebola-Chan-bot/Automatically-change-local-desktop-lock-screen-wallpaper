@@ -59,7 +59,6 @@ Module 核心逻辑
 	Friend Event 自动换_桌面()
 	Friend Event 自动换_锁屏(异常消息 As String)
 	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
-
 	'必须返回Task才能捕获异常。立即换锁屏并设置上次时间。
 	Async Sub 换锁屏()
 		Try
@@ -82,10 +81,10 @@ Module 核心逻辑
 			消息($"设置锁屏 {壁纸路径}")
 			默认锁屏.SetValue("文件名", Path.GetFileName(壁纸路径))
 			默认锁屏.SetValue("上次时间", Now)
+			RaiseEvent 自动换_锁屏(Nothing)
 		Catch ex As Exception
 			RaiseEvent 自动换_锁屏(报错(ex))
 		End Try
-		RaiseEvent 自动换_锁屏(Nothing)
 	End Sub
 	Function 检查更换() As TimeSpan
 		检查更换 = MaxValue '不能用Timeout.InfiniteTimeSpan，因为该值是-1，不大于正常的TimeSpan值。
@@ -169,43 +168,53 @@ Module 核心逻辑
 		End If
 	End Function
 	Friend 开机启动 As StartupTask
+
+	'需要规划下次唤醒的方法，只能有一个执行，否则会导致计划混乱。其中，保留或关闭必须执行，检查更换设置唤醒可以跳过。
+	ReadOnly 定时独占 As New Object
 	Sub 保留或关闭()
-		Dim 下次唤醒间隔 As TimeSpan = 检查更换()
-		Static 任务服务 As TaskService = TaskService.Instance
-		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
-		Dim 任务名称 As String = "本地桌面锁屏自动换"
-		Dim 计划任务 As Task = 任务服务.GetTask(任务名称)
-		If 下次唤醒间隔 = Timeout.InfiniteTimeSpan Then
-			开机启动.Disable()
-			任务服务.RootFolder.DeleteTask(任务名称, False)
-			Current.Shutdown()
-		ElseIf 下次唤醒间隔 < FromHours(12) Then
-			Call 开机启动.RequestEnableAsync()
-			If 计划任务 IsNot Nothing Then
-				计划任务.Enabled = False
-			End If
-			下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
-		Else
-			开机启动.Disable()
-			Dim 触发器 As Trigger = New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays))
-			If 计划任务 Is Nothing Then
-				计划任务 = 任务服务.AddTask(任务名称, 触发器, New ExecAction(启动路径, "后台启动"))
-				With 计划任务.Definition.Settings
-					.StartWhenAvailable = True
-					.DisallowStartIfOnBatteries = False
-					.StopIfGoingOnBatteries = False
-					.WakeToRun = True
-					.IdleSettings.StopOnIdleEnd = False
-					.RestartInterval = FromHours(2)
-					.RestartCount = 11
-				End With
+		Monitor.Enter(定时独占)
+		Try
+			Dim 下次唤醒间隔 As TimeSpan = 检查更换()
+			Static 任务服务 As TaskService = TaskService.Instance
+			Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
+			Dim 任务名称 As String = "本地桌面锁屏自动换"
+			Dim 计划任务 As Task = 任务服务.GetTask(任务名称)
+			If 下次唤醒间隔 = Timeout.InfiniteTimeSpan Then
+				开机启动.Disable()
+				任务服务.RootFolder.DeleteTask(任务名称, False)
+				Current.Shutdown()
+			ElseIf 下次唤醒间隔 < FromHours(12) Then
+				Call 开机启动.RequestEnableAsync()
+				If 计划任务 IsNot Nothing Then
+					计划任务.Enabled = False
+				End If
+				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			Else
-				计划任务.Definition.Triggers.Item(0) = 触发器
+				开机启动.Disable()
+				Dim 触发器 As Trigger = New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays))
+				If 计划任务 Is Nothing Then
+					计划任务 = 任务服务.AddTask(任务名称, 触发器, New ExecAction(启动路径, "后台启动"))
+					With 计划任务.Definition.Settings
+						.StartWhenAvailable = True
+						.DisallowStartIfOnBatteries = False
+						.StopIfGoingOnBatteries = False
+						.WakeToRun = True
+						.IdleSettings.StopOnIdleEnd = False
+						.RestartInterval = FromHours(2)
+						.RestartCount = 11
+					End With
+				Else
+					计划任务.Definition.Triggers.Item(0) = 触发器
+				End If
+				计划任务.RegisterChanges()
+				计划任务.Enabled = True
+				Current.Shutdown()
 			End If
-			计划任务.RegisterChanges()
-			计划任务.Enabled = True
-			Current.Shutdown()
-		End If
+		Catch ex As Exception
+			报错(ex)
+		Finally
+			Monitor.Exit(定时独占)
+		End Try
 	End Sub
 
 	'调用的COM接口不支持多线程，必须在原来线程上调度
@@ -217,7 +226,15 @@ Module 核心逻辑
 																		  End If
 																	  End Sub))
 	Sub 检查更换设置唤醒()
-		Dim 下次更换间隔 As TimeSpan = 检查更换()
-		下次唤醒.Change(下次更换间隔, 下次更换间隔)
+		If Monitor.TryEnter(定时独占) Then
+			Try
+				Dim 下次更换间隔 As TimeSpan = 检查更换()
+				下次唤醒.Change(下次更换间隔, 下次更换间隔)
+			Catch ex As Exception
+				报错(ex)
+			Finally
+				Monitor.Exit(定时独占)
+			End Try
+		End If
 	End Sub
 End Module
