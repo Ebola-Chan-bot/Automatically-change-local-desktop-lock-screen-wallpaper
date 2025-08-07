@@ -183,13 +183,7 @@ Module 核心逻辑
 				开机启动.Disable()
 				任务服务.RootFolder.DeleteTask(任务名称, False)
 				Current.Shutdown()
-			ElseIf 下次唤醒间隔 < FromHours(12) Then
-				Call 开机启动.RequestEnableAsync()
-				If 计划任务 IsNot Nothing Then
-					计划任务.Enabled = False
-				End If
-				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
-			Else
+			ElseIf 下次唤醒间隔 > FromHours(12) Then
 				开机启动.Disable()
 				Dim 触发器 As Trigger = New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays))
 				If 计划任务 Is Nothing Then
@@ -209,6 +203,12 @@ Module 核心逻辑
 				计划任务.RegisterChanges()
 				计划任务.Enabled = True
 				Current.Shutdown()
+			Else
+				Call 开机启动.RequestEnableAsync()
+				If 计划任务 IsNot Nothing Then
+					计划任务.Enabled = False
+				End If
+				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			End If
 		Catch ex As Exception
 			报错(ex)
