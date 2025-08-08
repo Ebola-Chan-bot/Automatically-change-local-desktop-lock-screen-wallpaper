@@ -50,16 +50,6 @@
 			</uap:VisualElements>
 			<Extensions>
 				<uap5:Extension
-				  Category="windows.startupTask"
-				  Executable="桌面锁屏自动换\桌面锁屏自动换.exe"
-				  EntryPoint="Windows.FullTrustApplication"
-				  uap10:Parameters="后台启动">
-					<uap5:StartupTask
-					  TaskId="自启动任务"
-					  Enabled="false"
-					  DisplayName="桌面锁屏自动换" />
-				</uap5:Extension>
-				<uap5:Extension
 					Category="windows.appExecutionAlias"
 					Executable="桌面锁屏自动换\桌面锁屏自动换.exe"
 					EntryPoint="Windows.FullTrustApplication">

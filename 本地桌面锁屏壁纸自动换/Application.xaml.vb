@@ -40,7 +40,6 @@ Class Application
 		Dim 随机访问流 As IRandomAccessStream = Await 日志文件.OpenAsync(FileAccessMode.ReadWrite)
 		随机访问流.Seek(随机访问流.Size)
 		日志流 = New StreamWriter(随机访问流.AsStreamForWrite) With {.AutoFlush = True}
-		开机启动 = Await StartupTask.GetAsync("自启动任务")
 		If Command() = "后台启动" Then
 			保留或关闭()
 		Else

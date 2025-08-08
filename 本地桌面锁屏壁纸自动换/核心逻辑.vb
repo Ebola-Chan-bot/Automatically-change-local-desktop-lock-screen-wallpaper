@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Security.Principal
 Imports System.Threading
 Imports System.TimeSpan
 Imports Microsoft.Win32
@@ -167,47 +168,46 @@ Module 核心逻辑
 			RaiseEvent 自动换_桌面()
 		End If
 	End Function
-	Friend 开机启动 As StartupTask
 
 	'需要规划下次唤醒的方法，只能有一个执行，否则会导致计划混乱。其中，保留或关闭必须执行，检查更换设置唤醒可以跳过。
 	ReadOnly 定时独占 As New Object
+	ReadOnly 任务服务 As TaskService = TaskService.Instance
+	Const 任务名称 As String = "本地桌面锁屏自动换v1.1.0"
+	Sub 设置计划任务(ParamArray 触发器() As Trigger)
+		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
+		Static 计划任务 As Task = 任务服务.GetTask(任务名称)
+		If 计划任务 Is Nothing Then
+			计划任务 = 任务服务.AddTask(任务名称, 触发器(0), New ExecAction(启动路径, "后台启动"))
+			With 计划任务.Definition.Settings
+				.StartWhenAvailable = True
+				.DisallowStartIfOnBatteries = False
+				.StopIfGoingOnBatteries = False
+				.WakeToRun = True
+				.IdleSettings.StopOnIdleEnd = False
+				.RestartInterval = FromHours(2)
+				.RestartCount = 11
+			End With
+		Else
+			计划任务.Definition.Triggers(0) = 触发器(0)
+		End If
+		If 计划任务.Definition.Triggers.Count < 触发器.Length Then
+			计划任务.Definition.Triggers.Add(触发器(1))
+		End If
+		计划任务.RegisterChanges()
+	End Sub
 	Sub 保留或关闭()
 		Monitor.Enter(定时独占)
 		Try
 			Dim 下次唤醒间隔 As TimeSpan = 检查更换()
-			Static 任务服务 As TaskService = TaskService.Instance
-			Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
-			Dim 任务名称 As String = "本地桌面锁屏自动换"
-			Dim 计划任务 As Task = 任务服务.GetTask(任务名称)
 			If 下次唤醒间隔 = Timeout.InfiniteTimeSpan Then
-				开机启动.Disable()
 				任务服务.RootFolder.DeleteTask(任务名称, False)
 				Current.Shutdown()
 			ElseIf 下次唤醒间隔 > FromHours(12) Then
-				开机启动.Disable()
-				Dim 触发器 As Trigger = New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays))
-				If 计划任务 Is Nothing Then
-					计划任务 = 任务服务.AddTask(任务名称, 触发器, New ExecAction(启动路径, "后台启动"))
-					With 计划任务.Definition.Settings
-						.StartWhenAvailable = True
-						.DisallowStartIfOnBatteries = False
-						.StopIfGoingOnBatteries = False
-						.WakeToRun = True
-						.IdleSettings.StopOnIdleEnd = False
-						.RestartInterval = FromHours(2)
-						.RestartCount = 11
-					End With
-				Else
-					计划任务.Definition.Triggers.Item(0) = 触发器
-				End If
-				计划任务.RegisterChanges()
-				计划任务.Enabled = True
+				设置计划任务(New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays)))
 				Current.Shutdown()
 			Else
-				Call 开机启动.RequestEnableAsync()
-				If 计划任务 IsNot Nothing Then
-					计划任务.Enabled = False
-				End If
+				Static 用户ID As String = WindowsIdentity.GetCurrent().User.Value
+				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.ConsoleConnect) With {.UserId = 用户ID}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 用户ID})
 				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			End If
 		Catch ex As Exception
