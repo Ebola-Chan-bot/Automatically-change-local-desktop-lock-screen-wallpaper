@@ -192,6 +192,8 @@ Module 核心逻辑
 		End If
 		If 计划任务.Definition.Triggers.Count < 触发器.Length Then
 			计划任务.Definition.Triggers.Add(触发器(1))
+		ElseIf 计划任务.Definition.Triggers.Count > 触发器.Length Then
+			计划任务.Definition.Triggers.RemoveAt(1)
 		End If
 		计划任务.RegisterChanges()
 	End Sub
@@ -207,7 +209,7 @@ Module 核心逻辑
 				Current.Shutdown()
 			Else
 				Static 用户ID As String = WindowsIdentity.GetCurrent().User.Value
-				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.ConsoleConnect) With {.UserId = 用户ID}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 用户ID})
+				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.SessionUnlock) With {.UserId = 用户ID}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 用户ID})
 				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			End If
 		Catch ex As Exception

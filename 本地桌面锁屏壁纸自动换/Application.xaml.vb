@@ -11,10 +11,13 @@ Class Application
 	Private 命名管道服务器流 As NamedPipeServerStream
 
 	Private Sub 管道回调()
-		If 当前窗口 Is Nothing Then
-			Dispatcher.Invoke(Sub() Call (New MainWindow).Show())
-		Else
-			Dispatcher.Invoke(AddressOf 当前窗口.Activate)
+		'如果读入0(False)，说明有命令行参数，应该是后台启动，不弹窗口
+		If 命名管道服务器流.ReadByte Then
+			If 当前窗口 Is Nothing Then
+				Dispatcher.Invoke(Sub() Call (New MainWindow).Show())
+			Else
+				Dispatcher.Invoke(AddressOf 当前窗口.Activate)
+			End If
 		End If
 		命名管道服务器流.Disconnect()
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
@@ -27,6 +30,7 @@ Class Application
 		Catch ex As IOException
 			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换", PipeDirection.Out)
 			命名管道客户端流.Connect(1000)
+			命名管道客户端流.WriteByte(Command() = "")
 			'不能在 Sub New() 中Shutdown，会被当作异常退出而产生崩溃报告。
 			Shutdown()
 			Exit Sub
