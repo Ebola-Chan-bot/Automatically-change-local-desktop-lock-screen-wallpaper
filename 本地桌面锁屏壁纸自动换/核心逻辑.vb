@@ -175,7 +175,10 @@ Module 核心逻辑
 	Const 任务名称 As String = "本地桌面锁屏自动换v1.1.0"
 	Sub 设置计划任务(ParamArray 触发器() As Trigger)
 		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
-		Static 计划任务 As Task = 任务服务.GetTask(任务名称)
+
+		'不能Static，因为用户可能手动删除任务
+		Dim 计划任务 As Task = 任务服务.GetTask(任务名称)
+
 		If 计划任务 Is Nothing Then
 			计划任务 = 任务服务.AddTask(任务名称, 触发器(0), New ExecAction(启动路径, "后台启动"))
 			With 计划任务.Definition.Settings

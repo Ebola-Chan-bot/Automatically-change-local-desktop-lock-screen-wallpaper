@@ -23,11 +23,12 @@ Class Application
 		命名管道服务器流.Disconnect()
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
 	End Sub
-
 	Private Async Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
 		'如果已有实例在运行，则激活那个实例，然后自己退出。
+		Dim 管道安全 As New PipeSecurity()
+		管道安全.AddAccessRule(New PipeAccessRule(当前用户.User, PipeAccessRights.FullControl, Security.AccessControl.AccessControlType.Allow))
 		Try
-			命名管道服务器流 = New NamedPipeServerStream("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous)
+			命名管道服务器流 = NamedPipeServerStreamAcl.Create("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 0, 0, 管道安全)
 		Catch ex As IOException
 			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换", PipeDirection.Out)
 			命名管道客户端流.Connect(1000)
@@ -36,13 +37,15 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End Try
-		If 当前用户.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator) Then
+		If 当前用户.User.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator) Then
+			命名管道服务器流.Dispose()
 			Process.Start(New ProcessStartInfo() With {
-				.FileName = Environment.ProcessPath,
-				.Arguments = Command(),
-				.UseShellExecute = True,
-				.Verb = "runas"
-			})
+						.FileName = Environment.ProcessPath,
+						.Arguments = Command(),
+						.UseShellExecute = True,
+						.Verb = "runas"
+					})
+			Shutdown()
 			Exit Sub
 		End If
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
