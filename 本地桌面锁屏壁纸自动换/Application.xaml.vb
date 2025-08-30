@@ -28,9 +28,9 @@ Class Application
 		Dim 管道安全 As New PipeSecurity()
 		管道安全.AddAccessRule(New PipeAccessRule(当前用户.User, PipeAccessRights.FullControl, Security.AccessControl.AccessControlType.Allow))
 		Try
-			命名管道服务器流 = NamedPipeServerStreamAcl.Create("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 0, 0, 管道安全)
+			命名管道服务器流 = NamedPipeServerStreamAcl.Create("本地桌面锁屏壁纸自动换" + 当前用户.User.Value, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 0, 0, 管道安全)
 		Catch ex As IOException
-			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换", PipeDirection.Out)
+			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换" + 当前用户.User.Value, PipeDirection.Out)
 			命名管道客户端流.Connect(1000)
 			命名管道客户端流.WriteByte(Command() = "")
 			'不能在 Sub New() 中Shutdown，会被当作异常退出而产生崩溃报告。

@@ -172,7 +172,8 @@ Module 核心逻辑
 	'需要规划下次唤醒的方法，只能有一个执行，否则会导致计划混乱。其中，保留或关闭必须执行，检查更换设置唤醒可以跳过。
 	ReadOnly 定时独占 As New Object
 	ReadOnly 任务服务 As TaskService = TaskService.Instance
-	Const 任务名称 As String = "本地桌面锁屏自动换v1.1.0"
+	Friend ReadOnly 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent()
+	ReadOnly 任务名称 As String = "本地桌面锁屏自动换v1.1.1" + 当前用户.User.Value
 	Sub 设置计划任务(ParamArray 触发器() As Trigger)
 		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
 
@@ -200,7 +201,6 @@ Module 核心逻辑
 		End If
 		计划任务.RegisterChanges()
 	End Sub
-	Friend ReadOnly 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent()
 	Sub 保留或关闭()
 		Monitor.Enter(定时独占)
 		Try
