@@ -1,7 +1,6 @@
 ﻿Imports System.ComponentModel
 Imports System.IO
 Imports System.Security.Principal
-Imports System.Threading
 Imports Microsoft.Win32
 Imports Windows.Storage
 Imports 桌面壁纸取设
@@ -81,7 +80,7 @@ Class MainWindow
 			Me.父 = 父
 		End Sub
 		Public Async Sub Execute(parameter As Object) Implements ICommand.Execute
-			父.图集目录 = (Await 父.主窗口.目录浏览对话框.PickSingleFolderAsync)?.Path
+			父.图集目录 = (Await 父.主窗口.运行时目录浏览对话框.PickSingleFolderAsync)?.Path
 		End Sub
 
 		Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
@@ -243,19 +242,27 @@ Class MainWindow
 			更新当前锁屏()
 		End If
 	End Sub
-	ReadOnly 目录浏览对话框 As New Pickers.FolderPicker
+	ReadOnly 运行时目录浏览对话框 As New Pickers.FolderPicker
+	ReadOnly 窗体目录浏览对话框 As New Forms.FolderBrowserDialog
+	Async Function 浏览目录() As Task(Of String)
+		If 提权 Then
+			Return If(窗体目录浏览对话框.ShowDialog = Forms.DialogResult.OK, 窗体目录浏览对话框.SelectedPath, Nothing)
+		Else
+			Return (Await 运行时目录浏览对话框.PickSingleFolderAsync)?.Path
+		End If
+	End Function
 	Private Async Sub 桌面_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_浏览图集.Click
-		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
+		Dim 目录 As String = Await 浏览目录()
 		If 目录 IsNot Nothing Then
-			默认桌面.SetValue("图集目录", 目录.Path)
-			桌面_图集目录.Text = 目录.Path
+			默认桌面.SetValue("图集目录", 目录)
+			桌面_图集目录.Text = 目录
 		End If
 	End Sub
 	Private Async Sub 锁屏_浏览图集_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_浏览图集.Click
-		Dim 目录 As StorageFolder = Await 目录浏览对话框.PickSingleFolderAsync
+		Dim 目录 As String = Await 浏览目录()
 		If 目录 IsNot Nothing Then
-			默认锁屏.SetValue("图集目录", 目录.Path)
-			锁屏_图集目录.Text = 目录.Path
+			默认锁屏.SetValue("图集目录", 目录)
+			锁屏_图集目录.Text = 目录
 		End If
 	End Sub
 	Private Sub 桌面_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_立即更换.Click
@@ -373,8 +380,8 @@ Class MainWindow
 		AddHandler 锁屏_立即更换.Click, AddressOf 换锁屏
 
 		'只能在Loaded中初始化，因为构造阶段窗口还没有句柄
-		WinRT.Interop.InitializeWithWindow.Initialize(目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
-		目录浏览对话框.FileTypeFilter.Add("*")
+		winrt.Interop.InitializeWithWindow.Initialize(运行时目录浏览对话框, New Interop.WindowInteropHelper(Me).Handle)
+		运行时目录浏览对话框.FileTypeFilter.Add("*")
 
 		If 桌面未加载 Then
 			更新当前桌面()

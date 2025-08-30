@@ -37,7 +37,7 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End Try
-		If 当前用户.User.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator) Then
+		If 当前用户.User.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not 提权 Then
 			命名管道服务器流.Dispose()
 			Process.Start(New ProcessStartInfo() With {
 						.FileName = Environment.ProcessPath,

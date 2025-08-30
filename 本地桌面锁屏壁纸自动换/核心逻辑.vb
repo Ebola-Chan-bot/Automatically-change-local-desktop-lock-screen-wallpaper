@@ -242,4 +242,5 @@ Module 核心逻辑
 			End Try
 		End If
 	End Sub
+	Friend ReadOnly 提权 As Boolean = New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator)
 End Module
