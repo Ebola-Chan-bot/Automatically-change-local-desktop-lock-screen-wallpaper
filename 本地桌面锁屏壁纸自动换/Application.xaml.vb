@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.IO.Pipes
+Imports System.Security.Principal
 Imports System.Windows.Threading
 Imports Windows.ApplicationModel
 Imports Windows.Storage
@@ -26,7 +27,7 @@ Class Application
 	Private Async Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
 		'如果已有实例在运行，则激活那个实例，然后自己退出。
 		Try
-			命名管道服务器流 = New NamedPipeServerStream("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous Or PipeOptions.CurrentUserOnly)
+			命名管道服务器流 = New NamedPipeServerStream("本地桌面锁屏壁纸自动换", PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous)
 		Catch ex As IOException
 			Dim 命名管道客户端流 As New NamedPipeClientStream(".", "本地桌面锁屏壁纸自动换", PipeDirection.Out)
 			命名管道客户端流.Connect(1000)
@@ -35,6 +36,15 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End Try
+		If 当前用户.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator) Then
+			Process.Start(New ProcessStartInfo() With {
+				.FileName = Environment.ProcessPath,
+				.Arguments = Command(),
+				.UseShellExecute = True,
+				.Verb = "runas"
+			})
+			Exit Sub
+		End If
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
 
 		'这一行必须用打包项目启动UWP框架才能执行，纯WPF框架不支持此API

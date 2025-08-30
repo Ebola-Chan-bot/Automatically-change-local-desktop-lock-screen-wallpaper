@@ -197,6 +197,7 @@ Module 核心逻辑
 		End If
 		计划任务.RegisterChanges()
 	End Sub
+	Friend ReadOnly 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent()
 	Sub 保留或关闭()
 		Monitor.Enter(定时独占)
 		Try
@@ -208,8 +209,7 @@ Module 核心逻辑
 				设置计划任务(New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays)))
 				Current.Shutdown()
 			Else
-				Static 用户ID As String = WindowsIdentity.GetCurrent().User.Value
-				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.SessionUnlock) With {.UserId = 用户ID}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 用户ID})
+				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.SessionUnlock) With {.UserId = 当前用户.User.Value}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 当前用户.User.Value})
 				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			End If
 		Catch ex As Exception
