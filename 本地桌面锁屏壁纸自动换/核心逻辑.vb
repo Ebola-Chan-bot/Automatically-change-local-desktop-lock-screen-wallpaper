@@ -60,8 +60,11 @@ Module 核心逻辑
 	Friend Event 自动换_桌面()
 	Friend Event 自动换_锁屏(异常消息 As String)
 	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
-	'必须返回Task才能捕获异常。立即换锁屏并设置上次时间。
+	ReadOnly 换锁屏单线程 As New Object
 	Async Sub 换锁屏()
+		If Not Monitor.TryEnter(换锁屏单线程) Then
+			Exit Sub
+		End If
 		Try
 			Dim 所有图片 As String()
 			Dim 图集目录 As String = 默认锁屏.GetValue("图集目录")
@@ -86,6 +89,7 @@ Module 核心逻辑
 		Catch ex As Exception
 			RaiseEvent 自动换_锁屏(报错(ex))
 		End Try
+		Monitor.Exit(换锁屏单线程)
 	End Sub
 	Function 检查更换() As TimeSpan
 		检查更换 = MaxValue '不能用Timeout.InfiniteTimeSpan，因为该值是-1，不大于正常的TimeSpan值。
