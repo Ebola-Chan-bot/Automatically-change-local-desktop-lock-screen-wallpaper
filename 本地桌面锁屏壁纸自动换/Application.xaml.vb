@@ -25,8 +25,13 @@ Class Application
 	End Sub
 	Private Async Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
 		'如果已有实例在运行，则激活那个实例，然后自己退出。
+
 		Dim 管道安全 As New PipeSecurity()
+
+		'确保非提权进程能连接到提权进程创建的命名管道
 		管道安全.AddAccessRule(New PipeAccessRule(当前用户.User, PipeAccessRights.FullControl, Security.AccessControl.AccessControlType.Allow))
+
+		'命名管道在用户间不隔离，所以要加上用户SID以防冲突
 		Try
 			命名管道服务器流 = NamedPipeServerStreamAcl.Create("本地桌面锁屏壁纸自动换" + 当前用户.User.Value, PipeDirection.In, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, 0, 0, 管道安全)
 		Catch ex As IOException
@@ -37,6 +42,8 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End Try
+
+		'内置本地管理员账户必须提权运行，否则不能创建任务计划
 		If 当前用户.User.Equals(New SecurityIdentifier(WellKnownSidType.AccountAdministratorSid, 当前用户.User.AccountDomainSid)) AndAlso Not 提权 Then
 			命名管道服务器流.Dispose()
 			Process.Start(New ProcessStartInfo() With {
@@ -48,6 +55,7 @@ Class Application
 			Shutdown()
 			Exit Sub
 		End If
+
 		命名管道服务器流.BeginWaitForConnection(AddressOf 管道回调, Nothing)
 
 		'这一行必须用打包项目启动UWP框架才能执行，纯WPF框架不支持此API
