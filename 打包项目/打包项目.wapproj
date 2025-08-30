@@ -32,6 +32,7 @@
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <EntryPointProjectUniqueName>..\本地桌面锁屏壁纸自动换\桌面锁屏自动换.vbproj</EntryPointProjectUniqueName>
+    <PackageCertificateThumbprint>85AFA93CC0FD347DCFE11C484343E57A253A6F37</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Always</AppxBundle>
