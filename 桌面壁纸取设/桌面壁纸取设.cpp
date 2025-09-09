@@ -66,6 +66,8 @@ namespace 桌面壁纸取设
 	{
 		msclr::interop::marshal_context 封送上下文;
 		COM异常检查(接口->SetWallpaper(监视器ID, 封送上下文.marshal_as<LPCWSTR>(新值)));
+		if (壁纸路径 != 新值)
+			throw gcnew System::NotImplementedException("未知异常，未能设置壁纸路径");
 	}
 	System::String^ 监视器设备::路径名称::get()
 	{
