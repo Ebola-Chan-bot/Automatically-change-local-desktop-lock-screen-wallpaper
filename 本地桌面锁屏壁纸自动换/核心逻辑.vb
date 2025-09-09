@@ -60,8 +60,11 @@ Module 核心逻辑
 	Friend Event 自动换_桌面()
 	Friend Event 自动换_锁屏(异常消息 As String)
 	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
-	'必须返回Task才能捕获异常。立即换锁屏并设置上次时间。
+	ReadOnly 换锁屏单线程 As New Object
 	Async Sub 换锁屏()
+		If Not Monitor.TryEnter(换锁屏单线程) Then
+			Exit Sub
+		End If
 		Try
 			Dim 所有图片 As String()
 			Dim 图集目录 As String = 默认锁屏.GetValue("图集目录")
@@ -86,6 +89,7 @@ Module 核心逻辑
 		Catch ex As Exception
 			RaiseEvent 自动换_锁屏(报错(ex))
 		End Try
+		Monitor.Exit(换锁屏单线程)
 	End Sub
 	Function 检查更换() As TimeSpan
 		检查更换 = MaxValue '不能用Timeout.InfiniteTimeSpan，因为该值是-1，不大于正常的TimeSpan值。
@@ -172,10 +176,14 @@ Module 核心逻辑
 	'需要规划下次唤醒的方法，只能有一个执行，否则会导致计划混乱。其中，保留或关闭必须执行，检查更换设置唤醒可以跳过。
 	ReadOnly 定时独占 As New Object
 	ReadOnly 任务服务 As TaskService = TaskService.Instance
-	Const 任务名称 As String = "本地桌面锁屏自动换v1.1.0"
+	Friend ReadOnly 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent()
+	ReadOnly 任务名称 As String = "本地桌面锁屏自动换v1.1.1" + 当前用户.User.Value
 	Sub 设置计划任务(ParamArray 触发器() As Trigger)
 		Static 启动路径 As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft\WindowsApps\桌面锁屏自动换.exe")
-		Static 计划任务 As Task = 任务服务.GetTask(任务名称)
+
+		'不能Static，因为用户可能手动删除任务
+		Dim 计划任务 As Task = 任务服务.GetTask(任务名称)
+
 		If 计划任务 Is Nothing Then
 			计划任务 = 任务服务.AddTask(任务名称, 触发器(0), New ExecAction(启动路径, "后台启动"))
 			With 计划任务.Definition.Settings
@@ -208,8 +216,7 @@ Module 核心逻辑
 				设置计划任务(New DailyTrigger(Math.Round(下次唤醒间隔.TotalDays)))
 				Current.Shutdown()
 			Else
-				Static 用户ID As String = WindowsIdentity.GetCurrent().User.Value
-				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.SessionUnlock) With {.UserId = 用户ID}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 用户ID})
+				设置计划任务(New SessionStateChangeTrigger(TaskSessionStateChangeType.SessionUnlock) With {.UserId = 当前用户.User.Value}, New SessionStateChangeTrigger(TaskSessionStateChangeType.RemoteConnect) With {.UserId = 当前用户.User.Value})
 				下次唤醒.Change(下次唤醒间隔, 下次唤醒间隔)
 			End If
 		Catch ex As Exception
@@ -239,4 +246,5 @@ Module 核心逻辑
 			End Try
 		End If
 	End Sub
+	Friend ReadOnly 提权 As Boolean = New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator)
 End Module
