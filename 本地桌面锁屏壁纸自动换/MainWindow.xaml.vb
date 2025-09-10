@@ -1,6 +1,7 @@
 ﻿Imports System.ComponentModel
 Imports System.IO
 Imports System.Security.Principal
+Imports System.Threading
 Imports Microsoft.Win32
 Imports 桌面壁纸取设
 
@@ -29,6 +30,9 @@ Class MainWindow
 			Me.父 = 父
 		End Sub
 		Public Sub Execute(parameter As Object) Implements ICommand.Execute
+			If Not Monitor.TryEnter(默认桌面) Then
+				Exit Sub
+			End If
 			Try
 				Dim 所有图片 As String()
 				Dim 图集目录 As String = 父.注册表键.GetValue("图集目录")
@@ -66,6 +70,7 @@ Class MainWindow
 			Catch ex As Exception
 				父.错误消息 = 报错(ex)
 			End Try
+			Monitor.Exit(默认桌面)
 		End Sub
 		Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
 			Return True
@@ -257,6 +262,9 @@ Class MainWindow
 		End If
 	End Sub
 	Private Sub 桌面_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 桌面_立即更换.Click
+		If Not Monitor.TryEnter(默认桌面) Then
+			Exit Sub
+		End If
 		Try
 			Dim 所有桌面 As New List(Of 桌面呈现结构)
 			Dim 默认图集 As String() = Nothing
@@ -325,6 +333,7 @@ Class MainWindow
 		Catch ex As Exception
 			桌面图片错误.Text = 报错(ex)
 		End Try
+		Monitor.Exit(默认桌面)
 	End Sub
 
 	Private Sub 桌面_更换周期_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
@@ -368,7 +377,6 @@ Class MainWindow
 		当前窗口 = Me
 		AddHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
 		AddHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
-		AddHandler 锁屏_立即更换.Click, AddressOf 换锁屏
 
 		If 桌面未加载 Then
 			更新当前桌面()
@@ -385,9 +393,14 @@ Class MainWindow
 		'尽管其他控件的事件处理程序可能不会导致同样严重的内存泄漏（因为控件和窗口的生命周期相同），但在关闭时显式地移除所有用 AddHandler 添加的事件是一种良好的编程习惯。
 		RemoveHandler 桌面_更换周期.SelectionChanged, AddressOf 桌面_更换周期_SelectionChanged
 		RemoveHandler 锁屏_更换周期.SelectionChanged, AddressOf 锁屏_更换周期_SelectionChanged
-		RemoveHandler 锁屏_立即更换.Click, DirectCast(AddressOf 换锁屏, RoutedEventHandler)
 
 		当前窗口 = Nothing
 		保留或关闭()
+	End Sub
+
+	Private Sub 锁屏_立即更换_Click(sender As Object, e As RoutedEventArgs) Handles 锁屏_立即更换.Click
+		If 只允许一个线程操作锁屏.Wait(0) Then
+			换锁屏()
+		End If
 	End Sub
 End Class

@@ -60,11 +60,8 @@ Module 核心逻辑
 	Friend Event 自动换_桌面()
 	Friend Event 自动换_锁屏(异常消息 As String)
 	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
-	ReadOnly 换锁屏单线程 As New Object
+	Friend ReadOnly 只允许一个线程操作锁屏 As New SemaphoreSlim(1, 1)
 	Async Sub 换锁屏()
-		If Not Monitor.TryEnter(换锁屏单线程) Then
-			Exit Sub
-		End If
 		Try
 			Dim 所有图片 As String()
 			Dim 图集目录 As String = 默认锁屏.GetValue("图集目录")
@@ -89,20 +86,27 @@ Module 核心逻辑
 		Catch ex As Exception
 			RaiseEvent 自动换_锁屏(报错(ex))
 		End Try
-		Monitor.Exit(换锁屏单线程)
+		只允许一个线程操作锁屏.Release()
 	End Sub
 	Function 检查更换() As TimeSpan
 		检查更换 = MaxValue '不能用Timeout.InfiniteTimeSpan，因为该值是-1，不大于正常的TimeSpan值。
-		Dim 本键轮换周期 As 轮换周期 = 默认锁屏.GetValue("更换周期", 轮换周期.禁用)
+		Dim 本键轮换周期 As 轮换周期
 		Dim 现在 As Date = Now
-		If 本键轮换周期 <> 轮换周期.禁用 Then
-			Dim 上次时间 As Date = 默认锁屏.GetValue("上次时间", Date.MinValue)
-			Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, 上次时间.AddMonths(1), 上次时间 + 轮换周期转时间跨度(本键轮换周期)) - 现在
-			If 下次更换时间 < FromSeconds(30) Then
-				换锁屏()
-				下次更换时间 = If(本键轮换周期 = 轮换周期.月1, 现在.AddMonths(1) - 现在, 轮换周期转时间跨度(本键轮换周期))
+		If 只允许一个线程操作锁屏.Wait(0) Then
+			本键轮换周期 = 默认锁屏.GetValue("更换周期", 轮换周期.禁用)
+			If 本键轮换周期 = 轮换周期.禁用 Then
+				只允许一个线程操作锁屏.Release()
+			Else
+				Dim 上次时间 As Date = 默认锁屏.GetValue("上次时间", Date.MinValue)
+				Dim 下次更换时间 As TimeSpan = If(本键轮换周期 = 轮换周期.月1, 上次时间.AddMonths(1), 上次时间 + 轮换周期转时间跨度(本键轮换周期)) - 现在
+				If 下次更换时间 < FromSeconds(30) Then
+					换锁屏()
+					下次更换时间 = If(本键轮换周期 = 轮换周期.月1, 现在.AddMonths(1) - 现在, 轮换周期转时间跨度(本键轮换周期))
+				Else
+					只允许一个线程操作锁屏.Release()
+				End If
+				检查更换 = 下次更换时间
 			End If
-			检查更换 = 下次更换时间
 		End If
 		Dim 桌面换了 As Boolean = False
 		Dim 默认图集 As String() = Nothing
@@ -173,8 +177,6 @@ Module 核心逻辑
 		End If
 	End Function
 
-	'需要规划下次唤醒的方法，只能有一个执行，否则会导致计划混乱。其中，保留或关闭必须执行，检查更换设置唤醒可以跳过。
-	ReadOnly 定时独占 As New Object
 	ReadOnly 任务服务 As TaskService = TaskService.Instance
 	Friend ReadOnly 当前用户 As WindowsIdentity = WindowsIdentity.GetCurrent()
 	ReadOnly 任务名称 As String = "本地桌面锁屏自动换v1.1.1" + 当前用户.User.Value
@@ -206,7 +208,7 @@ Module 核心逻辑
 		计划任务.RegisterChanges()
 	End Sub
 	Sub 保留或关闭()
-		Monitor.Enter(定时独占)
+		Monitor.Enter(下次唤醒)
 		Try
 			Dim 下次唤醒间隔 As TimeSpan = 检查更换()
 			If 下次唤醒间隔 = Timeout.InfiniteTimeSpan Then
@@ -221,9 +223,8 @@ Module 核心逻辑
 			End If
 		Catch ex As Exception
 			报错(ex)
-		Finally
-			Monitor.Exit(定时独占)
 		End Try
+		Monitor.Exit(下次唤醒)
 	End Sub
 
 	'调用的COM接口不支持多线程，必须在原来线程上调度
@@ -235,16 +236,15 @@ Module 核心逻辑
 																		  End If
 																	  End Sub))
 	Sub 检查更换设置唤醒()
-		If Monitor.TryEnter(定时独占) Then
+		If Monitor.TryEnter(下次唤醒) Then
 			Try
 				Dim 下次更换间隔 As TimeSpan = 检查更换()
 				下次唤醒.Change(下次更换间隔, 下次更换间隔)
 			Catch ex As Exception
 				报错(ex)
-			Finally
-				Monitor.Exit(定时独占)
 			End Try
 		End If
+		Monitor.Exit(下次唤醒)
 	End Sub
 	Friend ReadOnly 提权 As Boolean = New WindowsPrincipal(当前用户).IsInRole(WindowsBuiltInRole.Administrator)
 End Module
