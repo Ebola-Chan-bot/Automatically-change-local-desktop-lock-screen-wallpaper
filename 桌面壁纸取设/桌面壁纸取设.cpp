@@ -10,7 +10,7 @@ inline static void COM异常检查(HRESULT 结果)
 	if (FAILED(结果))
 		System::Runtime::InteropServices::Marshal::ThrowExceptionForHR(结果);
 }
-static IDesktopWallpaper* const 接口 = []()
+static IDesktopWallpaper* 接口 = []()
 	{
 		IDesktopWallpaper* 返回值;
 		COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&返回值));
@@ -62,12 +62,18 @@ namespace 桌面壁纸取设
 		CoTaskMemFree(壁纸);
 		return 返回值;
 	}
-	void 监视器设备::壁纸路径::set(System::String^新值)
+	void 监视器设备::壁纸路径::set(System::String^ 新值)
 	{
 		msclr::interop::marshal_context 封送上下文;
 		COM异常检查(接口->SetWallpaper(监视器ID, 封送上下文.marshal_as<LPCWSTR>(新值)));
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(1s);
 		if (壁纸路径 != 新值)
-			throw gcnew System::NotImplementedException("未知异常，未能设置壁纸路径");
+		{
+			接口->Release();
+			COM异常检查(CoCreateInstance(CLSID_DesktopWallpaper, NULL, CLSCTX_ALL, IID_IDesktopWallpaper, (LPVOID*)&接口));
+			throw gcnew System::NotImplementedException("未知原因未能设置壁纸路径，请重试或重启");
+		}
 	}
 	System::String^ 监视器设备::路径名称::get()
 	{
