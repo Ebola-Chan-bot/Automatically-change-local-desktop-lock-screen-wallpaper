@@ -2,14 +2,12 @@
 Imports System.IO.Pipes
 Imports System.Security.Principal
 Imports System.Windows.Threading
-Imports Windows.ApplicationModel
 Imports Windows.Storage
 Imports Windows.Storage.Streams
 Class Application
 
 	' Application-level events, such as Startup, Exit, and DispatcherUnhandledException
 	' can be handled in this file.
-	Private 命名管道服务器流 As NamedPipeServerStream
 
 	Private Sub 管道回调()
 		'如果读入0(False)，说明有命令行参数，应该是后台启动，不弹窗口

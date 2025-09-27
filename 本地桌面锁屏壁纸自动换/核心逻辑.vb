@@ -1,10 +1,11 @@
 ﻿Imports System.IO
+Imports System.IO.Pipes
+Imports System.Runtime.InteropServices
 Imports System.Security.Principal
 Imports System.Threading
 Imports System.TimeSpan
 Imports Microsoft.Win32
 Imports Microsoft.Win32.TaskScheduler
-Imports Windows.ApplicationModel
 Imports Windows.Storage
 Imports 桌面壁纸取设
 Enum 轮换周期 As Byte
@@ -61,6 +62,17 @@ Module 核心逻辑
 	Friend Event 自动换_锁屏(异常消息 As String)
 	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
 	Friend ReadOnly 只允许一个线程操作锁屏 As New SemaphoreSlim(1, 1)
+	Friend 命名管道服务器流 As NamedPipeServerStream
+	Sub 自我重启(异常内容 As COMException)
+		报错(异常内容)
+		命名管道服务器流.Dispose()
+		Process.Start(New ProcessStartInfo() With {
+					.FileName = Environment.ProcessPath,
+					.Arguments = If(当前窗口 Is Nothing, "后台启动", ""),
+					.UseShellExecute = True
+				})
+		Application.Current.Shutdown()
+	End Sub
 	Async Sub 换锁屏()
 		Try
 			Dim 所有图片 As String()
@@ -83,6 +95,8 @@ Module 核心逻辑
 			默认锁屏.SetValue("文件名", Path.GetFileName(壁纸路径))
 			默认锁屏.SetValue("上次时间", Now)
 			RaiseEvent 自动换_锁屏(Nothing)
+		Catch ex As COMException
+			自我重启(ex)
 		Catch ex As Exception
 			RaiseEvent 自动换_锁屏(报错(ex))
 		End Try
@@ -160,6 +174,8 @@ Module 核心逻辑
 					子键.SetValue("上次时间", Now)
 					子键.SetValue("文件名", Path.GetFileName(壁纸路径))
 					桌面换了 = True
+				Catch ex As COMException
+					自我重启(ex)
 				Catch ex As Exception
 					报错(ex)
 				End Try

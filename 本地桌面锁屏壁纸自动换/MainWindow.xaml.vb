@@ -1,5 +1,6 @@
 ﻿Imports System.ComponentModel
 Imports System.IO
+Imports System.Runtime.InteropServices
 Imports System.Security.Principal
 Imports System.Threading
 Imports Microsoft.Win32
@@ -67,6 +68,8 @@ Class MainWindow
 					父.注册表键.SetValue("有效", False)
 					DirectCast(父.主窗口.桌面壁纸列表.ItemsSource, List(Of 桌面呈现结构)).Remove(父)
 				End If
+			Catch ex As COMException
+				自我重启(ex)
 			Catch ex As Exception
 				父.错误消息 = 报错(ex)
 			End Try
@@ -314,6 +317,8 @@ Class MainWindow
 							桌面.文件名 = Path.GetFileName(选定图片)
 							桌面.注册表键.SetValue("上次时间", Now)
 							消息($"{监视器ID} 设置桌面 {选定图片}")
+						Catch ex As COMException
+							自我重启(ex)
 						Catch ex As Exception
 							Try
 								桌面 = New 桌面呈现结构(监视器, 缓存壁纸, Me, M) With {
