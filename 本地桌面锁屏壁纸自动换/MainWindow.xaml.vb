@@ -193,22 +193,24 @@ Class MainWindow
 	End Class
 	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
 		桌面未加载 = False
-		Try
-			Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
-			Dim 有效监视器 As New List(Of 桌面呈现结构)
-			Dim 缓存壁纸 As String() = Nothing
-			For a As Byte = 0 To 监视器个数
-				Dim 新设备 As New 监视器设备(a)
-				If 新设备.有效 Then
-					Try
-						有效监视器.Add(New 桌面呈现结构(新设备, 缓存壁纸, Me, a))
-					Catch ex As Exception
-						Continue For
-					End Try
-				End If
-			Next
-			桌面壁纸列表.ItemsSource = 有效监视器
-		Catch ex As Exception
+        Try
+            Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
+            Dim 有效监视器 As New List(Of 桌面呈现结构)
+            Dim 缓存壁纸 As String() = Nothing
+            For a As Byte = 0 To 监视器个数
+                Dim 新设备 As New 监视器设备(a)
+                If 新设备.有效 Then
+                    Try
+                        有效监视器.Add(New 桌面呈现结构(新设备, 缓存壁纸, Me, a))
+                    Catch ex As Exception
+                        Continue For
+                    End Try
+                End If
+            Next
+            桌面壁纸列表.ItemsSource = 有效监视器
+        Catch ex As COMException
+            自我重启(ex)
+        Catch ex As Exception
 			桌面图片错误.Text = 报错(ex)
 		End Try
 	End Sub
