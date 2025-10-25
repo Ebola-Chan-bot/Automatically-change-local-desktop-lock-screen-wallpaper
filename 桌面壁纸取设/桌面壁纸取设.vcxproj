@@ -17,10 +17,10 @@
     <Keyword>NetCoreCProj</Keyword>
     <RootNamespace>桌面壁纸取设</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <TargetFramework>net9.0</TargetFramework>
     <ProjectName>桌面壁纸取设</ProjectName>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-    <WindowsTargetPlatformMinVersion>8.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformMinVersion>10.0.26100.0</WindowsTargetPlatformMinVersion>
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

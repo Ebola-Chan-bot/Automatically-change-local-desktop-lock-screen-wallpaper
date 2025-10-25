@@ -1,4 +1,5 @@
-﻿Imports System.ComponentModel
+﻿Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Security.Principal
@@ -7,206 +8,212 @@ Imports Microsoft.Win32
 Imports 桌面壁纸取设
 
 Class MainWindow
-	Protected 桌面未加载 As Boolean = True
-	Protected 锁屏未加载 As Boolean = True
-	Shared Function 载入位图(路径 As String) As BitmapImage
-		Dim 壁纸路径 As New Uri(路径)
-		Try
-			载入位图 = New BitmapImage(壁纸路径)
-		Catch ex As IOException
-			载入位图 = New BitmapImage
-			With 载入位图
-				.BeginInit()
-				.CreateOptions = BitmapCreateOptions.IgnoreColorProfile
-				.UriSource = 壁纸路径
-				.EndInit()
-			End With
-		End Try
-	End Function
-	Private Class 立即更换
-		Implements ICommand
-		Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
-		ReadOnly 父 As 桌面呈现结构
-		Sub New(父 As 桌面呈现结构)
-			Me.父 = 父
-		End Sub
-		Public Sub Execute(parameter As Object) Implements ICommand.Execute
-			If Not Monitor.TryEnter(默认桌面) Then
-				Exit Sub
-			End If
-			Try
-				Dim 所有图片 As String()
-				Dim 图集目录 As String = 父.注册表键.GetValue("图集目录")
-				Dim 监视器ID = 父.监视器ID
-				If IsNothing(图集目录) Then
-					Dim 默认图集目录 As String = 默认桌面.GetValue("图集目录")
-					Try
-						所有图片 = Directory.GetFiles(默认图集目录)
-					Catch ex As ArgumentException
-						Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录, ex)
-					End Try
-				Else
-					Try
-						所有图片 = Directory.GetFiles(图集目录)
-					Catch ex As ArgumentException
-						Throw New 监视器异常("图集目录无效", 监视器ID, 图集目录, ex)
-					End Try
-				End If
-				If 所有图片.Length = 0 Then
-					Throw New 监视器异常("图集目录没有图片", 监视器ID, 图集目录)
-				End If
-				Dim 监视器 As New 监视器设备(父.监视器ID)
-				If 监视器.有效 Then
-					Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
-					监视器.壁纸路径 = 壁纸路径
-					消息($"{监视器ID} 设置桌面 {壁纸路径}")
-					父.注册表键.SetValue("上次时间", Now)
-					父.壁纸图 = 载入位图(壁纸路径)
-					父.文件名 = Path.GetFileName(壁纸路径)
-					父.错误消息 = ""
-				Else
-					父.注册表键.SetValue("有效", False)
-					DirectCast(父.主窗口.桌面壁纸列表.ItemsSource, List(Of 桌面呈现结构)).Remove(父)
-				End If
-			Catch ex As COMException
-				自我重启(ex)
-			Catch ex As Exception
-				父.错误消息 = 报错(ex)
-			End Try
-			Monitor.Exit(默认桌面)
-		End Sub
-		Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
-			Return True
-		End Function
-	End Class
-	Private Class 浏览
-		Implements ICommand
-		ReadOnly 父 As 桌面呈现结构
-		Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
-		Sub New(父 As 桌面呈现结构)
-			Me.父 = 父
-		End Sub
-		Public Sub Execute(parameter As Object) Implements ICommand.Execute
-			父.图集目录 = If(父.主窗口.目录浏览对话框.ShowDialog = Forms.DialogResult.OK, 父.主窗口.目录浏览对话框.SelectedPath, Nothing)
-		End Sub
+    Protected 桌面未加载 As Boolean = True
+    Protected 锁屏未加载 As Boolean = True
+    Shared Function 载入位图(路径 As String) As BitmapImage
+        Dim 壁纸路径 As New Uri(路径)
+        Try
+            载入位图 = New BitmapImage(壁纸路径)
+        Catch ex As IOException
+            载入位图 = New BitmapImage
+            With 载入位图
+                .BeginInit()
+                .CreateOptions = BitmapCreateOptions.IgnoreColorProfile
+                .UriSource = 壁纸路径
+                .EndInit()
+            End With
+        End Try
+    End Function
+    Private Class 立即更换
+        Implements ICommand
+        Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
+        ReadOnly 父 As 桌面呈现结构
+        Sub New(父 As 桌面呈现结构)
+            Me.父 = 父
+        End Sub
+        Public Sub Execute(parameter As Object) Implements ICommand.Execute
+            If Not Monitor.TryEnter(默认桌面) Then
+                Exit Sub
+            End If
+            Try
+                Dim 所有图片 As String()
+                Dim 图集目录 As String = 父.注册表键.GetValue("图集目录")
+                Dim 监视器ID = 父.监视器ID
+                If IsNothing(图集目录) Then
+                    Dim 默认图集目录 As String = 默认桌面.GetValue("图集目录")
+                    Try
+                        所有图片 = Directory.GetFiles(默认图集目录)
+                    Catch ex As ArgumentException
+                        Throw New 监视器异常("图集目录无效", 监视器ID, 默认图集目录, ex)
+                    End Try
+                Else
+                    Try
+                        所有图片 = Directory.GetFiles(图集目录)
+                    Catch ex As ArgumentException
+                        Throw New 监视器异常("图集目录无效", 监视器ID, 图集目录, ex)
+                    End Try
+                End If
+                If 所有图片.Length = 0 Then
+                    Throw New 监视器异常("图集目录没有图片", 监视器ID, 图集目录)
+                End If
+                Dim 监视器 As New 监视器设备(父.监视器ID)
+                If 监视器.有效 Then
+                    Dim 壁纸路径 As String = 所有图片(随机生成器.Next(所有图片.Length))
+                    监视器.壁纸路径 = 壁纸路径
+                    消息($"{监视器ID} 设置桌面 {壁纸路径}")
+                    父.注册表键.SetValue("上次时间", Now)
+                    父.壁纸图 = 载入位图(壁纸路径)
+                    父.文件名 = Path.GetFileName(壁纸路径)
+                    父.错误消息 = ""
+                Else
+                    父.注册表键.SetValue("有效", False)
+                    DirectCast(父.主窗口.桌面壁纸列表.ItemsSource, List(Of 桌面呈现结构)).Remove(父)
+                End If
+            Catch ex As COMException
+                自我重启(ex)
+            Catch ex As Exception
+                父.错误消息 = 报错(ex)
+            End Try
+            Monitor.Exit(默认桌面)
+        End Sub
+        Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
+            Return True
+        End Function
+    End Class
+    Private Class 浏览
+        Implements ICommand
+        ReadOnly 父 As 桌面呈现结构
+        Public Event CanExecuteChanged As EventHandler Implements ICommand.CanExecuteChanged
+        Sub New(父 As 桌面呈现结构)
+            Me.父 = 父
+        End Sub
+        Public Sub Execute(parameter As Object) Implements ICommand.Execute
+            父.图集目录 = If(父.主窗口.目录浏览对话框.ShowDialog = Forms.DialogResult.OK, 父.主窗口.目录浏览对话框.SelectedPath, Nothing)
+        End Sub
 
-		Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
-			Return True
-		End Function
-	End Class
-	Private Class 桌面呈现结构
-		Implements INotifyPropertyChanged
-		Friend ReadOnly 注册表键 As RegistryKey
-		Friend ReadOnly 主窗口 As MainWindow
-		Sub New(监视器 As String, 主窗口 As MainWindow)
-			注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器)).Replace("/"c, "-"c))
-			Me.主窗口 = 主窗口
-			注册表键.SetValue("有效", True)
-			监视器ID = 监视器
-		End Sub
-		ReadOnly Property 监视器ID As String
-		Property 文件名 As String
-			Get
-				Return 注册表键.GetValue("文件名")
-			End Get
-			Set(value As String)
-				注册表键.SetValue("文件名", value)
-				RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(文件名)))
-			End Set
-		End Property
-		Private i壁纸图 As BitmapImage
-		Property 壁纸图 As BitmapImage
-			Get
-				Return i壁纸图
-			End Get
-			Set(value As BitmapImage)
-				i壁纸图 = value
-				RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(壁纸图)))
-			End Set
-		End Property
-		Property 更换周期 As Byte
-			Get
-				Return 注册表键.GetValue("更换周期", 轮换周期.默认)
-			End Get
-			Set(value As Byte)
-				注册表键.SetValue("更换周期", value)
-				消息($"{监视器ID} 更换周期设置 {DirectCast(value, 轮换周期)}")
+        Public Function CanExecute(parameter As Object) As Boolean Implements ICommand.CanExecute
+            Return True
+        End Function
+    End Class
+    Private Class 桌面呈现结构
+        Implements INotifyPropertyChanged
+        Friend ReadOnly 注册表键 As RegistryKey
+        Friend ReadOnly 主窗口 As MainWindow
+        Sub New(监视器 As String, 主窗口 As MainWindow)
+            注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器)).Replace("/"c, "-"c))
+            Me.主窗口 = 主窗口
+            注册表键.SetValue("有效", True)
+            监视器ID = 监视器
+        End Sub
+        ReadOnly Property 监视器ID As String
+        Property 文件名 As String
+            Get
+                Return 注册表键.GetValue("文件名")
+            End Get
+            Set(value As String)
+                注册表键.SetValue("文件名", value)
+                RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(文件名)))
+            End Set
+        End Property
+        Private i壁纸图 As BitmapImage
+        Property 壁纸图 As BitmapImage
+            Get
+                Return i壁纸图
+            End Get
+            Set(value As BitmapImage)
+                i壁纸图 = value
+                RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(壁纸图)))
+            End Set
+        End Property
+        Property 更换周期 As Byte
+            Get
+                Return 注册表键.GetValue("更换周期", 轮换周期.默认)
+            End Get
+            Set(value As Byte)
+                注册表键.SetValue("更换周期", value)
+                消息($"{监视器ID} 更换周期设置 {DirectCast(value, 轮换周期)}")
 
-				'此更改可能导致下次唤醒时间变得更接近，所以需要全部重新计算
-				检查更换设置唤醒()
-			End Set
-		End Property
-		Property 图集目录 As String
-			Get
-				Return 注册表键.GetValue("图集目录", Nothing)
-			End Get
-			Set(value As String)
-				If value Is Nothing Then
-					注册表键.DeleteValue("图集目录", False)
-				Else
-					注册表键.SetValue("图集目录", value)
-					RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(图集目录)))
-				End If
-			End Set
-		End Property
-		Protected i错误消息 As String
-		Property 错误消息 As String
-			Get
-				Return i错误消息
-			End Get
-			Set(value As String)
-				i错误消息 = value
-				RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(错误消息)))
-			End Set
-		End Property
-		Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
-		ReadOnly Property 立即更换命令 As New 立即更换(Me)
-		ReadOnly Property 浏览命令 As New 浏览(Me)
-		Sub New(新设备 As 监视器设备, ByRef 缓存壁纸 As String(), 主窗口 As MainWindow, 监视器索引 As Byte)
-			Me.主窗口 = 主窗口
-			Dim 路径字符串 As String = 新设备.壁纸路径
-			监视器ID = 新设备.路径名称
-			注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器ID)).Replace("/"c, "-"c))
-			文件名 = Path.GetFileName(路径字符串)
-			If Not File.Exists(路径字符串) Then
-				If 缓存壁纸 Is Nothing Then
-					Dim Themes As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft\Windows\Themes")
-					Dim CachedFiles As String = IO.Path.Combine(Themes, "CachedFiles")
-					If Directory.Exists(CachedFiles) Then
-						缓存壁纸 = Directory.GetFiles(CachedFiles)
-					Else
-						Select Case 桌面壁纸.位置
-							Case 桌面壁纸位置.填充, 桌面壁纸位置.适应, 桌面壁纸位置.拉伸
-								缓存壁纸 = Directory.GetFiles(Themes, "Transcoded_*")
-							Case 桌面壁纸位置.平铺, 桌面壁纸位置.居中, 桌面壁纸位置.跨区
-								缓存壁纸 = Directory.GetFiles(Themes, "TranscodedWallpaper")
-						End Select
-					End If
-				End If
-				路径字符串 = 缓存壁纸(If(缓存壁纸.Length > 1, 监视器索引, 0))
-			End If
-			壁纸图 = 载入位图(路径字符串)
+                '此更改可能导致下次唤醒时间变得更接近，所以需要全部重新计算
+                检查更换设置唤醒()
+            End Set
+        End Property
+        Property 图集目录 As String
+            Get
+                Return 注册表键.GetValue("图集目录", Nothing)
+            End Get
+            Set(value As String)
+                If value Is Nothing Then
+                    注册表键.DeleteValue("图集目录", False)
+                Else
+                    注册表键.SetValue("图集目录", value)
+                    RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(图集目录)))
+                End If
+            End Set
+        End Property
+        Protected i错误消息 As String
+        Property 错误消息 As String
+            Get
+                Return i错误消息
+            End Get
+            Set(value As String)
+                i错误消息 = value
+                RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(错误消息)))
+            End Set
+        End Property
+        Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
+        ReadOnly Property 立即更换命令 As New 立即更换(Me)
+        ReadOnly Property 浏览命令 As New 浏览(Me)
+        Sub New(新设备 As 监视器设备, ByRef 缓存壁纸 As String(), 主窗口 As MainWindow, 监视器索引 As Byte)
+            Me.主窗口 = 主窗口
+            Dim 路径字符串 As String = 新设备.壁纸路径
+            监视器ID = 新设备.路径名称
+            注册表键 = 注册表根.CreateSubKey(Convert.ToBase64String(Text.Encoding.Unicode.GetBytes(监视器ID)).Replace("/"c, "-"c))
+            文件名 = Path.GetFileName(路径字符串)
+            If Not File.Exists(路径字符串) Then
+                If 缓存壁纸 Is Nothing Then
+                    Dim Themes As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Microsoft\Windows\Themes")
+                    Dim CachedFiles As String = IO.Path.Combine(Themes, "CachedFiles")
+                    If Directory.Exists(CachedFiles) Then
+                        缓存壁纸 = Directory.GetFiles(CachedFiles)
+                    Else
+                        Select Case 桌面壁纸.位置
+                            Case 桌面壁纸位置.填充, 桌面壁纸位置.适应, 桌面壁纸位置.拉伸
+                                缓存壁纸 = Directory.GetFiles(Themes, "Transcoded_*")
+                            Case 桌面壁纸位置.平铺, 桌面壁纸位置.居中, 桌面壁纸位置.跨区
+                                缓存壁纸 = Directory.GetFiles(Themes, "TranscodedWallpaper")
+                        End Select
+                    End If
+                End If
+                路径字符串 = 缓存壁纸(If(缓存壁纸.Length > 1, 监视器索引, 0))
+            End If
+            壁纸图 = 载入位图(路径字符串)
 
-			'必须放在最后设置，因为前面有可能出错退出
-			注册表键.SetValue("有效", True)
-		End Sub
-	End Class
-	Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
-		桌面未加载 = False
+            '必须放在最后设置，因为前面有可能出错退出
+            注册表键.SetValue("有效", True)
+        End Sub
+    End Class
+    Private Sub 更新当前桌面() Handles 桌面壁纸列表.MouseLeftButtonUp
+        桌面未加载 = False
         Try
             Dim 监视器个数 As Byte = 监视器设备.监视器设备计数() - 1
             Dim 有效监视器 As New List(Of 桌面呈现结构)
             Dim 缓存壁纸 As String() = Nothing
+            Dim 已存在路径 As New HashSet(Of String)
             For a As Byte = 0 To 监视器个数
                 Dim 新设备 As New 监视器设备(a)
-                If 新设备.有效 Then
-                    Try
-                        有效监视器.Add(New 桌面呈现结构(新设备, 缓存壁纸, Me, a))
-                    Catch ex As Exception
-                        Continue For
-                    End Try
+                If 已存在路径.Contains(新设备.路径名称) Then
+                    Continue For
+                Else
+                    已存在路径.Add(新设备.路径名称)
                 End If
-            Next
+                If 新设备.有效 Then
+					Try
+						有效监视器.Add(New 桌面呈现结构(新设备, 缓存壁纸, Me, a))
+					Catch ex As Exception
+						Continue For
+					End Try
+				End If
+			Next
             桌面壁纸列表.ItemsSource = 有效监视器
         Catch ex As COMException
             自我重启(ex)
@@ -275,11 +282,17 @@ Class MainWindow
 			Dim 默认图集 As String() = Nothing
 			Dim 缓存壁纸 As String() = Nothing
 			Dim 无默认图集 As Boolean = False
-			Dim 默认图集目录 As String = Nothing
-			For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
+            Dim 默认图集目录 As String = Nothing
+            Dim 已存在路径 As New HashSet(Of String)
+            For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
 				Try
-					Dim 监视器 As New 监视器设备(M)
-					If 监视器.有效 Then
+                    Dim 监视器 As New 监视器设备(M)
+                    If 已存在路径.Contains(监视器.路径名称) Then
+                        Continue For
+                    Else
+                        已存在路径.Add(监视器.路径名称)
+                    End If
+                    If 监视器.有效 Then
 						Dim 监视器ID As String = 监视器.路径名称
 						Dim 桌面 As New 桌面呈现结构(监视器ID, Me)
 						Try

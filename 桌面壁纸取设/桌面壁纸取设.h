@@ -43,12 +43,12 @@ namespace 桌面壁纸取设 {
 		bool 有效();
 		property System::String^ 壁纸路径
 		{
-			System::String ^ get();
+			System::String^ get();
 			void set(System::String^);
 		}
-			property System::String^ 路径名称
+		property System::String^ 路径名称
 		{
-			System::String ^ get();
+			System::String^ get();
 		}
 	};
 	public ref class 桌面壁纸
@@ -63,20 +63,20 @@ namespace 桌面壁纸取设 {
 			System::Drawing::Color get();
 			void set(System::Drawing::Color);
 		}
-			static property 桌面壁纸位置 位置
+		static property 桌面壁纸位置 位置
 		{
 			桌面壁纸位置 get();
 		}
-			static property System::String^ 幻灯片目录
+		static property System::String^ 幻灯片目录
 		{
-			System::String ^ get();
+			System::String^ get();
 			void set(System::String^);
 		}
-			static property 桌面幻灯片显示状态 幻灯片状态
+		static property 桌面幻灯片显示状态 幻灯片状态
 		{
 			桌面幻灯片显示状态 get();
 		}
-			static property 幻灯片选项结构 幻灯片选项
+		static property 幻灯片选项结构 幻灯片选项
 		{
 			幻灯片选项结构 get();
 			void set(幻灯片选项结构);

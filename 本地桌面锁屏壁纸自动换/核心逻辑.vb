@@ -7,6 +7,7 @@ Imports System.TimeSpan
 Imports Microsoft.Win32
 Imports Microsoft.Win32.TaskScheduler
 Imports Windows.Storage
+Imports Windows.System.UserProfile
 Imports 桌面壁纸取设
 Enum 轮换周期 As Byte
 	禁用
@@ -60,7 +61,8 @@ Module 核心逻辑
 	Friend ReadOnly Current As Application = System.Windows.Application.Current
 	Friend Event 自动换_桌面()
 	Friend Event 自动换_锁屏(异常消息 As String)
-	ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
+    ReadOnly ContentDeliveryManager As RegistryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager")
+	Friend Personalization As RegistryKey = Nothing
 	Friend ReadOnly 只允许一个线程操作锁屏 As New SemaphoreSlim(1, 1)
 	Friend 命名管道服务器流 As NamedPipeServerStream
 	Sub 自我重启(异常内容 As COMException)
@@ -89,7 +91,18 @@ Module 核心逻辑
 			ContentDeliveryManager.SetValue("RotatingLockScreenEnabled", 0, RegistryValueKind.DWord)
 
 			'必须等待，否则不会及时更改界面中的锁屏壁纸
-			Await Windows.System.UserProfile.LockScreen.SetImageFileAsync(Await StorageFile.GetFileFromPathAsync(壁纸路径))
+			Await LockScreen.SetImageFileAsync(Await StorageFile.GetFileFromPathAsync(壁纸路径))
+			If Path.GetFullPath(LockScreen.OriginalImageFile.LocalPath) <> Path.GetFullPath(壁纸路径) Then
+				If Personalization Is Nothing Then
+					Personalization = Registry.LocalMachine.OpenSubKey("SOFTWARE\Policies\Microsoft\Windows\Personalization")
+					'如果这个键不存在将返回Nothing，不会抛出异常。
+				End If
+				If Personalization IsNot Nothing AndAlso Personalization.GetValue("NoChangingLockScreen", False) Then
+					Throw New 监视器异常("组策略：计算机配置\管理模板\控制面板\个性化\阻止更改锁屏界面图像和登录图像", "锁屏", 壁纸路径)
+				Else
+					Throw New 监视器异常("设置锁屏壁纸失败", "锁屏", 壁纸路径)
+				End If
+			End If
 
 			消息($"设置锁屏 {壁纸路径}")
 			默认锁屏.SetValue("文件名", Path.GetFileName(壁纸路径))
@@ -124,10 +137,16 @@ Module 核心逻辑
 		End If
 		Dim 桌面换了 As Boolean = False
 		Dim 默认图集 As String() = Nothing
-		Dim 默认周期 As 轮换周期 = 默认桌面.GetValue("更换周期", 轮换周期.禁用)
-		For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
+        Dim 默认周期 As 轮换周期 = 默认桌面.GetValue("更换周期", 轮换周期.禁用)
+        Dim 已存在路径 As New HashSet(Of String)
+        For M As Byte = 0 To 监视器设备.监视器设备计数() - 1
 			Dim 监视器 As New 监视器设备(M)
-			If Not 监视器.有效 Then
+            If 已存在路径.Contains(监视器.路径名称) Then
+                Continue For
+            Else
+                已存在路径.Add(监视器.路径名称)
+            End If
+            If Not 监视器.有效 Then
 				Continue For
 			End If
 			Dim 监视器ID = 监视器.路径名称

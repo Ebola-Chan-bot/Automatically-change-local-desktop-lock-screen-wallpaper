@@ -12,7 +12,7 @@
 	<Identity
 	  Name="4264644686220.6993758F38F5"
 	  Publisher="CN=埃博拉酱"
-	  Version="1.1.1.0" />
+	  Version="1.1.2.0" />
 
 	<Properties>
 		<DisplayName>桌面锁屏自动换</DisplayName>
