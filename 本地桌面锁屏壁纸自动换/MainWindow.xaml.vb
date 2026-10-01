@@ -13,16 +13,21 @@ Class MainWindow
     Shared Function 载入位图(路径 As String) As BitmapImage
         Dim 壁纸路径 As New Uri(路径)
         Try
-            载入位图 = New BitmapImage(壁纸路径)
+            载入位图 = 解码位图(壁纸路径, BitmapCreateOptions.None)
         Catch ex As IOException
-            载入位图 = New BitmapImage
-            With 载入位图
-                .BeginInit()
-                .CreateOptions = BitmapCreateOptions.IgnoreColorProfile
-                .UriSource = 壁纸路径
-                .EndInit()
-            End With
+            载入位图 = 解码位图(壁纸路径, BitmapCreateOptions.IgnoreColorProfile)
         End Try
+    End Function
+    Private Shared Function 解码位图(壁纸路径 As Uri, 创建选项 As BitmapCreateOptions) As BitmapImage
+        Dim 图 As New BitmapImage
+        图.BeginInit()
+        '必须用OnLoad并冻结：默认缓存方式会让BitmapImage在对象存活期间一直持有源文件句柄，句柄要等垃圾回收终结才释放，导致更换壁纸后旧图仍被占用无法删除；OnLoad在EndInit时完整解码进内存并立即关闭文件句柄
+        图.CacheOption = BitmapCacheOption.OnLoad
+        图.CreateOptions = 创建选项
+        图.UriSource = 壁纸路径
+        图.EndInit()
+        图.Freeze()
+        Return 图
     End Function
     Private Class 立即更换
         Implements ICommand
@@ -249,7 +254,7 @@ Class MainWindow
 		End If
 
 		'锁屏图是经过转码的，即使图片有颜色上下文的损坏也会被修复
-		锁屏_当前图片.Source = New BitmapImage(New Uri(锁屏历史路径))
+		锁屏_当前图片.Source = 载入位图(锁屏历史路径)
 		锁屏文件名.Text = 默认锁屏.GetValue("文件名")
 	End Sub
 	Private Sub 自动换锁屏事件(异常消息 As String)

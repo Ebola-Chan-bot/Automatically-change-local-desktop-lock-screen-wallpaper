@@ -12,7 +12,7 @@
 	<Identity
 	  Name="4264644686220.6993758F38F5"
 	  Publisher="CN=埃博拉酱"
-	  Version="1.1.2.0" />
+	  Version="1.1.3.0" />
 
 	<Properties>
 		<DisplayName>桌面锁屏自动换</DisplayName>
@@ -29,6 +29,8 @@
 	<Dependencies>
 		<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
 		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.20348.0" MaxVersionTested="10.0.26100.0" />
+		<!--C++/CLI(/clr:netcore) 必须动态链接 VC 运行库（/MT 会报 D8016），故声明 VCLibs 桌面框架包依赖：商店安装自动解析、随系统更新，用户无需单独安装运行库-->
+		<PackageDependency Name="Microsoft.VCLibs.140.00.UWPDesktop" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" MinVersion="14.0.30704.0" />
 	</Dependencies>
 
 	<Resources>

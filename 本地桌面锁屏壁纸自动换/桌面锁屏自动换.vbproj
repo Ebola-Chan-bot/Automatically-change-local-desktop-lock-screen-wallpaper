@@ -6,6 +6,8 @@
 		<RootNamespace>本地桌面锁屏壁纸自动换</RootNamespace>
 		<UseWPF>true</UseWPF>
 		<Platforms>x64</Platforms>
+		<!--打包项目(DesktopBridge)会以 RuntimeIdentifier=win-x64 构建本工程，还原时必须生成对应目标，否则报 NETSDK1047-->
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
 		<SupportedOSPlatformVersion>10.0.20348.0</SupportedOSPlatformVersion>
 		<UseWindowsForms>True</UseWindowsForms>
 	</PropertyGroup>
